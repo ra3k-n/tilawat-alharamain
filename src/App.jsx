@@ -6,7 +6,7 @@ export default function App() {
 
   // حالة القائمة المنسدلة والشيخ المختار
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [selectedSheikh, setSelectedSheikh] = useState('الشيخ ياسر')
+  const [selectedSheikh, setSelectedSheikh] = useState('الشيخ ياسر الدوسري')
 
   // بيانات الشيوخ المحدثة بروابط الصوت الخاصة بك وبالترتيب المطلوب
   const sheikhsData = [
@@ -18,17 +18,17 @@ export default function App() {
       audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/NYHfkEdjTzaUAdcT.mp3'
     },
     {
-      name: 'الشيخ فيصل',
-      title: 'صلاة المغرب — الشيخ فيصل غزاوي',
-      date: ' 2 ربيع الآخر 1448 هـ',
-      surah: 'سورتي الكوثر والنصر',
+      name: 'الشيخ فيصل غزاوي',
+      title: 'صلاة المغرب -  2 ربيع الآخر 1448 هـ',
+      date: ' سورتي الكوثر والنصر',
+      surah: 'المسجد الحرام',
       audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/WuXffcYMfFZTTDoW.mp3'
     },
     {
-      name: 'الشيخ الوليد',
-      title: 'صلاة الفجر — الشيخ الوليد الشمسان',
-      date: '1 شعبان 1447 هـ',
-      surah: 'سورة القصص، من الآية 76 إلى 88',
+      name: ' الشيخ الوليد الشمسان',
+      title: 'صلاة الفجر — 1 شعبان 1447 هـ',
+      date: 'سورة القصص، من الآية 76 إلى 88',
+      surah: 'المسجد الحرام',
       audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/bWIptAoginZcHYqQ.mp3'
     }
   ]

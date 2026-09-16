@@ -8,27 +8,27 @@ export default function App() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [selectedSheikh, setSelectedSheikh] = useState('الشيخ ياسر الدوسري')
 
-  // بيانات الشيوخ المحدثة بروابط الصوت الخاصة بك وبالترتيب المطلوب
+  // بيانات الشيوخ المحدثة والمصححة
   const sheikhsData = [
     {
       name: 'الشيخ ياسر الدوسري',
       title: 'صلاة المغرب — 18 محرم 1448 هـ',
-      date: 'سورة الكهف  107 - 110،    سورة مريم - 96 - 98',
-      surah: 'المسجد الحرام',
+      surah: 'سورة الكهف 107 - 110، سورة مريم 96 - 98',
+      location: 'المسجد الحرام',
       audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/NYHfkEdjTzaUAdcT.mp3'
     },
     {
       name: 'الشيخ فيصل غزاوي',
-      title: 'صلاة المغرب -  2 ربيع الآخر 1448 هـ',
-      date: ' سورتي الكوثر والنصر',
-      surah: 'المسجد الحرام',
+      title: 'صلاة المغرب — 2 ربيع الآخر 1448 هـ',
+      surah: 'سورتي الكوثر والنصر',
+      location: 'المسجد الحرام',
       audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/WuXffcYMfFZTTDoW.mp3'
     },
     {
-      name: ' الشيخ الوليد الشمسان',
+      name: 'الشيخ الوليد الشمسان',
       title: 'صلاة الفجر — 1 شعبان 1447 هـ',
-      date: 'سورة القصص، من الآية 76 إلى 88',
-      surah: 'المسجد الحرام',
+      surah: 'سورة القصص، من الآية 76 إلى 88',
+      location: 'المسجد الحرام',
       audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/bWIptAoginZcHYqQ.mp3'
     }
   ]
@@ -124,7 +124,7 @@ export default function App() {
           </div>
         )}
 
-        {/* --- صفحة التلاوات الخاشعة مع القائمة المنسدلة --- */}
+        {/* --- صفحة التلاوات الخاشعة --- */}
         {activeTab === 'recitations' && (
           <div className="space-y-8 animate-fadeIn">
             <div className="text-center space-y-2">
@@ -179,7 +179,7 @@ export default function App() {
                   <p className="text-xs text-slate-400 mt-1">{currentRecitation.surah}</p>
                 </div>
                 <span className="text-xs px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full">
-                  {currentRecitation.date}
+                  {currentRecitation.location}
                 </span>
               </div>
 

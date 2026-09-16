@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
+import { SunnahPage } from './Sunnah' // ← هذا هو السطر المهم لاستدعاء صفحة السنن الذكية
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('recitations')
-  const [completedSunnahs, setCompletedSunnahs] = useState(0)
 
   // حالة القائمة المنسدلة والشيخ المختار
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [selectedSheikh, setSelectedSheikh] = useState('الشيخ ياسر الدوسري')
 
-  // بيانات الشيوخ المحدثة والمصححة
+  // بيانات الشيوخ
   const sheikhsData = [
     {
       name: 'الشيخ ياسر الدوسري',
@@ -33,25 +33,6 @@ export default function App() {
     }
   ]
 
-  // بيانات السنن
-  const sunnahs = [
-    { id: 1, title: 'غسل اليدين قبل الوضوء', category: 'عام', hadith: 'إذا استيقظ أحدكم من نومه فلا يغسل يده في الإناء حتى يغسلها ثلاثاً.' },
-    { id: 2, title: 'السواك عند الصلاة', category: 'المسجد', hadith: 'لولا أن أشق على أمتي لأمرتهم بالسواك عند كل صلاة.' },
-    { id: 3, title: 'قراءة أذكار الصباح والمساء', category: 'الأذكار', hadith: 'أفضل الذكر لا إله إلا الله.' },
-  ]
-
-  const [currentSunnahIndex, setCurrentSunnahIndex] = useState(0)
-
-  const handleNextSunnah = () => {
-    setCurrentSunnahIndex((prev) => (prev + 1) % sunnahs.length)
-  }
-
-  const handleApplySunnah = () => {
-    if (completedSunnahs < 5) setCompletedSunnahs(completedSunnahs + 1)
-    handleNextSunnah()
-  }
-
-  // التلاوة الحالية بناءً على الشيخ المختار
   const currentRecitation = sheikhsData.find(s => s.name === selectedSheikh) || sheikhsData[0]
 
   return (
@@ -194,52 +175,9 @@ export default function App() {
           </div>
         )}
 
-        {/* --- صفحة سنن النبي ﷺ --- */}
+        {/* --- صفحة سنن النبي ﷺ (هنا نستدعي المكون المربوط بملف Sunnah.jsx) --- */}
         {activeTab === 'sunnah' && (
-          <div className="space-y-8 max-w-2xl mx-auto animate-fadeIn">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-6">
-              <div>
-                <h2 className="text-3xl font-bold text-white">سنن النبي ﷺ</h2>
-                <p className="text-slate-400 text-sm mt-1">خطوات صغيرة نحيي بها هدي النبي ﷺ في يومنا</p>
-              </div>
-              <div className="text-left bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl">
-                <span className="text-2xl font-black text-emerald-400">{completedSunnahs}/5</span>
-                <p className="text-xs text-slate-500">سنن مكتملة اليوم</p>
-              </div>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 space-y-6 shadow-xl">
-              <div className="flex justify-between items-center">
-                <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
-                  تصنيف: {sunnahs[currentSunnahIndex].category}
-                </span>
-                <span className="text-xs text-slate-500">سنة {currentSunnahIndex + 1} من {sunnahs.length}</span>
-              </div>
-
-              <h3 className="text-2xl font-bold text-white">
-                {sunnahs[currentSunnahIndex].title}
-              </h3>
-
-              <div className="p-4 bg-slate-950/70 border border-slate-800 rounded-xl text-slate-300 text-sm leading-relaxed italic">
-                "{sunnahs[currentSunnahIndex].hadith}"
-              </div>
-
-              <div className="flex gap-4 pt-2">
-                <button
-                  onClick={handleApplySunnah}
-                  className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20"
-                >
-                  ✓ طبقتها
-                </button>
-                <button
-                  onClick={handleNextSunnah}
-                  className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-all"
-                >
-                  تجاوز ←
-                </button>
-              </div>
-            </div>
-          </div>
+          <SunnahPage />
         )}
 
       </main>

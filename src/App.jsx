@@ -1,189 +1,43 @@
-import React, { useState } from 'react'
-import { SunnahPage } from './Sunnah' // ← هذا هو السطر المهم لاستدعاء صفحة السنن الذكية
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { SunnahPage } from './Sunnah'
+import './App.css'
+
+const STORAGE = { route: 'tilawat:last-route', theme: 'tilawat:theme', sheikh: 'tilawat:selected-sheikh', audio: 'tilawat:audio-position' }
+const routeLabels = { '/': 'الرئيسية', '/recitations': 'التلاوات', '/quran': 'القرآن الكريم', '/hadith': 'الأحاديث النبوية ﷺ', '/prophets': 'قصص الأنبياء عليهم السلام', '/adhkar': 'الأذكار والأدعية', '/seerah': 'السيرة النبوية', '/search': 'البحث الشامل', '/sources': 'المصادر والتخريج', '/sunnah': 'سنن النبي ﷺ' }
+const sheikhsData = [
+  { name: 'الشيخ ياسر الدوسري', title: 'صلاة المغرب — 18 محرم 1448 هـ', surah: 'سورة الكهف 107 - 110، سورة مريم 96 - 98', location: 'المسجد الحرام', audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/NYHfkEdjTzaUAdcT.mp3' },
+  { name: 'الشيخ فيصل غزاوي', title: 'صلاة المغرب — 2 ربيع الآخر 1448 هـ', surah: 'سورتي الكوثر والنصر', location: 'المسجد الحرام', audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/WuXffcYMfFZTTDoW.mp3' },
+  { name: 'الشيخ الوليد الشمسان', title: 'صلاة الفجر — 1 شعبان 1447 هـ', surah: 'سورة القصص، من الآية 76 إلى 88', location: 'المسجد الحرام', audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/bWIptAoginZcHYqQ.mp3' },
+]
+function getStored(key, fallback = '') { try { return localStorage.getItem(key) || fallback } catch { return fallback } }
+function readRoute() { const path = window.location.pathname; return routeLabels[path] ? path : getStored(STORAGE.route, '/') }
+function navigate(path) { window.history.pushState({}, '', path); window.dispatchEvent(new PopStateEvent('popstate')) }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('recitations')
-
-  // حالة القائمة المنسدلة والشيخ المختار
+  const [route, setRoute] = useState(readRoute)
+  const [theme, setTheme] = useState(() => getStored(STORAGE.theme, 'dark'))
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [selectedSheikh, setSelectedSheikh] = useState('الشيخ ياسر الدوسري')
+  const [selectedSheikh, setSelectedSheikh] = useState(() => getStored(STORAGE.sheikh, sheikhsData[0].name))
+  const [audioPosition, setAudioPosition] = useState(() => Number(getStored(STORAGE.audio, '0')) || 0)
+  const audioRef = useRef(null)
+  const currentRecitation = useMemo(() => sheikhsData.find((s) => s.name === selectedSheikh) || sheikhsData[0], [selectedSheikh])
 
-  // بيانات الشيوخ
-  const sheikhsData = [
-    {
-      name: 'الشيخ ياسر الدوسري',
-      title: 'صلاة المغرب — 18 محرم 1448 هـ',
-      surah: 'سورة الكهف 107 - 110، سورة مريم 96 - 98',
-      location: 'المسجد الحرام',
-      audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/NYHfkEdjTzaUAdcT.mp3'
-    },
-    {
-      name: 'الشيخ فيصل غزاوي',
-      title: 'صلاة المغرب — 2 ربيع الآخر 1448 هـ',
-      surah: 'سورتي الكوثر والنصر',
-      location: 'المسجد الحرام',
-      audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/WuXffcYMfFZTTDoW.mp3'
-    },
-    {
-      name: 'الشيخ الوليد الشمسان',
-      title: 'صلاة الفجر — 1 شعبان 1447 هـ',
-      surah: 'سورة القصص، من الآية 76 إلى 88',
-      location: 'المسجد الحرام',
-      audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/bWIptAoginZcHYqQ.mp3'
-    }
-  ]
+  useEffect(() => { const onPop = () => setRoute(readRoute()); window.addEventListener('popstate', onPop); return () => window.removeEventListener('popstate', onPop) }, [])
+  useEffect(() => { localStorage.setItem(STORAGE.route, route); localStorage.setItem(STORAGE.theme, theme); document.documentElement.dataset.theme = theme }, [route, theme])
+  useEffect(() => { localStorage.setItem(STORAGE.sheikh, selectedSheikh) }, [selectedSheikh])
+  useEffect(() => { const audio = audioRef.current; if (!audio) return; const restore = () => { if (audioPosition > 0 && audioPosition < audio.duration) audio.currentTime = audioPosition }; audio.addEventListener('loadedmetadata', restore); return () => audio.removeEventListener('loadedmetadata', restore) }, [currentRecitation.audioSrc, audioPosition])
+  const go = (path) => { setIsDropdownOpen(false); navigate(path) }
+  const toggleTheme = () => setTheme((value) => value === 'dark' ? 'light' : 'dark')
+  const saveAudio = () => { const position = audioRef.current?.currentTime || 0; setAudioPosition(position); localStorage.setItem(STORAGE.audio, String(position)) }
 
-  const currentRecitation = sheikhsData.find(s => s.name === selectedSheikh) || sheikhsData[0]
-
-  return (
-    <div dir="rtl" className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
-      
-      {/* 1. شريط التنقل العلوي (Navbar) */}
-      <header className="w-full border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('home')}>
-            <div className="w-9 h-9 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold">
-              🕌
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-white tracking-wide">منصة تلاوات الحرمين</h1>
-            </div>
-          </div>
-
-          <nav className="flex items-center gap-2 bg-slate-800/60 p-1 rounded-xl border border-slate-700/50">
-            <button
-              onClick={() => setActiveTab('home')}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'home' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
-            >
-              الرئيسية
-            </button>
-            <button
-              onClick={() => setActiveTab('recitations')}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'recitations' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
-            >
-              التلاوات
-            </button>
-            <button
-              onClick={() => setActiveTab('sunnah')}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'sunnah' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
-            >
-              سنن النبي ﷺ
-            </button>
-          </nav>
-        </div>
-      </header>
-
-      {/* 2. المحتوى الرئيسي */}
-      <main className="max-w-3xl mx-auto px-4 py-10 w-full flex-grow">
-
-        {/* --- الصفحة الرئيسية --- */}
-        {activeTab === 'home' && (
-          <div className="space-y-16 animate-fadeIn">
-            <div className="text-center space-y-4 py-10">
-              <h1 className="text-4xl md:text-6xl font-black text-white leading-tight">
-                صوتٌ يفتح <span className="text-emerald-400">أبواب السكينة</span>
-              </h1>
-              <p className="text-slate-400 max-w-xl mx-auto text-base">
-                ننشر التلاوات كاملة من الحرمين الشريفين، لتكون لك صحبة قرآنية دائمة وتجربة هادئة في يومك.
-              </p>
-
-              <div className="flex flex-wrap justify-center gap-4 pt-4">
-                <button
-                  onClick={() => setActiveTab('recitations')}
-                  className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl transition-all shadow-lg hover:shadow-amber-500/20"
-                >
-                  التلاوات الخاشعة ◀
-                </button>
-                <button
-                  onClick={() => setActiveTab('sunnah')}
-                  className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl border border-slate-700 transition-all"
-                >
-                  سنن النبي ﷺ ←
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* --- صفحة التلاوات الخاشعة --- */}
-        {activeTab === 'recitations' && (
-          <div className="space-y-8 animate-fadeIn">
-            <div className="text-center space-y-2">
-              <h2 className="text-4xl font-black text-white">
-                تلاوات <span className="text-red-500">خاشعة</span>
-              </h2>
-              <p className="text-slate-400 text-sm">اختر اسم الشيخ من القائمة، ثم استمع إلى التلاوة.</p>
-            </div>
-
-            {/* القائمة المنسدلة */}
-            <div className="space-y-3">
-              <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-full bg-[#0b1329] border border-amber-500/60 p-4 rounded-lg flex items-center justify-between text-white font-bold text-lg hover:border-amber-400 transition-all shadow-lg"
-              >
-                <span>{selectedSheikh}</span>
-                <span className={`transform transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}>
-                  ▲
-                </span>
-              </button>
-
-              {isDropdownOpen && (
-                <div className="space-y-2 pt-1 animate-fadeIn">
-                  {sheikhsData.map((sheikh) => {
-                    const isSelected = selectedSheikh === sheikh.name
-                    return (
-                      <button
-                        key={sheikh.name}
-                        onClick={() => {
-                          setSelectedSheikh(sheikh.name)
-                          setIsDropdownOpen(false)
-                        }}
-                        className={`w-full p-4 rounded-lg text-center font-bold text-lg transition-all ${
-                          isSelected
-                            ? 'bg-amber-400 text-slate-950 border border-amber-500 shadow-md'
-                            : 'bg-[#0b1329] text-slate-200 border border-slate-800 hover:border-slate-600'
-                        }`}
-                      >
-                        {sheikh.name}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* بطاقة التلاوة الخاصة بالشيخ المختار */}
-            <div className="bg-[#0b1329] border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
-              <div className="flex justify-between items-center border-b border-slate-800/80 pb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-white">{currentRecitation.title}</h3>
-                  <p className="text-xs text-slate-400 mt-1">{currentRecitation.surah}</p>
-                </div>
-                <span className="text-xs px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full">
-                  {currentRecitation.location}
-                </span>
-              </div>
-
-              {/* مشغل الصوت التفاعلي */}
-              <div className="pt-2">
-                <audio key={currentRecitation.audioSrc} controls className="w-full rounded-lg">
-                  <source src={currentRecitation.audioSrc} type="audio/mpeg" />
-                  متصفحك لا يدعم مشغل الصوت.
-                </audio>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* --- صفحة سنن النبي ﷺ (هنا نستدعي المكون المربوط بملف Sunnah.jsx) --- */}
-        {activeTab === 'sunnah' && (
-          <SunnahPage />
-        )}
-
-      </main>
-
-      <footer className="w-full border-t border-slate-900 py-6 text-center text-xs text-slate-600">
-      </footer>
-    </div>
-  )
+  return <div dir="rtl" className="site-shell">
+    <header className="topbar"><div className="topbar-inner"><button className="brand" onClick={() => go('/')} aria-label="العودة إلى الرئيسية"><span className="brand-mark">🕌</span><span><strong>منصة تلاوات الحرمين</strong><small>صحبة قرآنية هادئة</small></span></button><div className="header-actions"><button className="theme-toggle" onClick={toggleTheme} aria-label={`تفعيل الوضع ${theme === 'dark' ? 'الفاتح' : 'الداكن'}`} title="تبديل المظهر">{theme === 'dark' ? '☀️ الوضع الفاتح' : '🌙 الوضع الداكن'}</button><button className="mobile-menu" onClick={() => setIsDropdownOpen((v) => !v)} aria-label="فتح القائمة">☰</button></div></div>
+      <nav className={`main-nav ${isDropdownOpen ? 'nav-open' : ''}`} aria-label="التنقل الرئيسي"><button className={route === '/' ? 'active' : ''} onClick={() => go('/')}>الرئيسية</button><button className={route === '/recitations' ? 'active' : ''} onClick={() => go('/recitations')}>التلاوات</button><button className={route === '/quran' ? 'active' : ''} onClick={() => go('/quran')}>القرآن الكريم</button><button className={route === '/hadith' ? 'active' : ''} onClick={() => go('/hadith')}>الأحاديث النبوية ﷺ</button><button className={route === '/prophets' ? 'active' : ''} onClick={() => go('/prophets')}>قصص الأنبياء</button><button className={route === '/adhkar' ? 'active' : ''} onClick={() => go('/adhkar')}>الأذكار والأدعية</button><button className={route === '/sunnah' ? 'active' : ''} onClick={() => go('/sunnah')}>سنن النبي ﷺ</button></nav></header>
+    <main className="main-content">{route === '/' && <Home go={go} />}{route === '/recitations' && <Recitations current={currentRecitation} selected={selectedSheikh} setSelected={setSelectedSheikh} open={isDropdownOpen} setOpen={setIsDropdownOpen} audioRef={audioRef} onTime={saveAudio} />}{route === '/sunnah' && <SunnahPage />}{['/quran', '/hadith', '/prophets', '/adhkar', '/seerah', '/search', '/sources'].includes(route) && <ComingSoon route={route} go={go} />}</main>
+    <footer className="footer"><div><strong>منصة تلاوات الحرمين</strong><p>تلاوات ومحتوى إسلامي موثق، بتجربة هادئة ومريحة للقراءة والاستماع.</p></div><div className="footer-links"><button onClick={() => go('/quran')}>القرآن الكريم</button><button onClick={() => go('/hadith')}>الأحاديث</button><button onClick={() => go('/sources')}>المصادر والتخريج</button><button onClick={() => go('/search')}>البحث الشامل</button></div><div className="footer-bottom"><span>المحتوى يضاف تدريجيًا مع إظهار مصدره ودرجة توثيقه.</span><span>© 2026 منصة تلاوات الحرمين</span></div></footer>
+  </div>
 }
+function Home({ go }) { return <section className="home-page"><div className="hero-card"><span className="eyebrow">من الحرمين الشريفين</span><h1>صوتٌ يفتح <em>أبواب السكينة</em></h1><p>صحبة قرآنية دائمة، وتلاوات خاشعة، ومحتوى إسلامي نحرص أن يكون مصدره واضحًا.</p><div className="hero-actions"><button className="primary-btn" onClick={() => go('/recitations')}>استمع إلى التلاوات</button><button className="secondary-btn" onClick={() => go('/quran')}>افتح القرآن الكريم</button></div></div><div className="feature-grid"><Feature icon="📖" title="القرآن الكريم" text="واجهة قراءة هادئة" go={go} path="/quran" /><Feature icon="🕋" title="الأحاديث النبوية ﷺ" text="مع المصدر والتخريج" go={go} path="/hadith" /><Feature icon="🤲" title="الأذكار والأدعية" text="محتوى منظم وموثق" go={go} path="/adhkar" /></div></section> }
+function Feature({ icon, title, text, go, path }) { return <button className="feature-card" onClick={() => go(path)}><span>{icon}</span><strong>{title}</strong><small>{text}</small></button> }
+function Recitations({ current, selected, setSelected, open, setOpen, audioRef, onTime }) { return <section className="recitations-page"><div className="section-heading"><span className="eyebrow">المكتبة الصوتية</span><h1>تلاوات <em>خاشعة</em></h1><p>اختر اسم الشيخ، ثم استمع إلى التلاوة من المسجد الحرام.</p></div><div className="select-wrap"><button className="sheikh-select" onClick={() => setOpen(!open)} aria-expanded={open}><span>{selected}</span><span>{open ? '▲' : '▼'}</span></button>{open && <div className="sheikh-options">{sheikhsData.map((s) => <button key={s.name} className={selected === s.name ? 'selected' : ''} onClick={() => { setSelected(s.name); setOpen(false) }}>{s.name}</button>)}</div>}</div><article className="recitation-card"><div className="recitation-meta"><div><h2>{current.title}</h2><p>{current.surah}</p></div><span className="location-badge">{current.location}</span></div><audio ref={audioRef} key={current.audioSrc} controls onTimeUpdate={onTime} onPause={onTime} onEnded={() => localStorage.setItem(STORAGE.audio, '0')}><source src={current.audioSrc} type="audio/mpeg" />متصفحك لا يدعم مشغل الصوت.</audio><small className="save-note">يتم حفظ آخر موضع استماع تلقائيًا على هذا الجهاز.</small></article></section> }
+function ComingSoon({ route, go }) { return <section className="placeholder-page"><span className="placeholder-icon">✦</span><h1>{routeLabels[route]}</h1><p>هذا القسم مهيأ ضمن هيكل المنصة، وسيتم تزويده تدريجيًا بالمحتوى الموثق ومصادره.</p><button className="primary-btn" onClick={() => go('/recitations')}>العودة إلى التلاوات</button></section> }

@@ -15,7 +15,8 @@ function navigate(path) { window.history.pushState({}, '', path); window.dispatc
 
 export default function App() {
   const [route, setRoute] = useState(readRoute)
-  const [theme, setTheme] = useState(() => getStored(STORAGE.theme, 'dark'))
+  const [theme, setTheme] = useState(() => getStored(STORAGE.theme, 'system'))
+  const [isThemeOpen, setIsThemeOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [selectedSheikh, setSelectedSheikh] = useState(() => getStored(STORAGE.sheikh, sheikhsData[0].name))
   const [audioPosition, setAudioPosition] = useState(() => Number(getStored(STORAGE.audio, '0')) || 0)
@@ -23,15 +24,28 @@ export default function App() {
   const currentRecitation = useMemo(() => sheikhsData.find((s) => s.name === selectedSheikh) || sheikhsData[0], [selectedSheikh])
 
   useEffect(() => { const onPop = () => setRoute(readRoute()); window.addEventListener('popstate', onPop); return () => window.removeEventListener('popstate', onPop) }, [])
-  useEffect(() => { localStorage.setItem(STORAGE.route, route); localStorage.setItem(STORAGE.theme, theme); document.documentElement.dataset.theme = theme }, [route, theme])
+  useEffect(() => {
+    localStorage.setItem(STORAGE.route, route)
+    localStorage.setItem(STORAGE.theme, theme)
+    const applyTheme = () => {
+      const resolved = theme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme
+      document.documentElement.dataset.theme = resolved
+    }
+    applyTheme()
+    if (theme !== 'system') return undefined
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    media.addEventListener?.('change', applyTheme)
+    return () => media.removeEventListener?.('change', applyTheme)
+  }, [route, theme])
   useEffect(() => { localStorage.setItem(STORAGE.sheikh, selectedSheikh) }, [selectedSheikh])
   useEffect(() => { const audio = audioRef.current; if (!audio) return; const restore = () => { if (audioPosition > 0 && audioPosition < audio.duration) audio.currentTime = audioPosition }; audio.addEventListener('loadedmetadata', restore); return () => audio.removeEventListener('loadedmetadata', restore) }, [currentRecitation.audioSrc, audioPosition])
   const go = (path) => { setIsDropdownOpen(false); navigate(path) }
-  const toggleTheme = () => setTheme((value) => value === 'dark' ? 'light' : 'dark')
+  const chooseTheme = (value) => { setTheme(value); setIsThemeOpen(false) }
+  const themeLabel = theme === 'system' ? 'مع النظام' : theme === 'dark' ? 'داكن' : 'فاتح'
   const saveAudio = () => { const position = audioRef.current?.currentTime || 0; setAudioPosition(position); localStorage.setItem(STORAGE.audio, String(position)) }
 
   return <div dir="rtl" className="site-shell">
-    <header className="topbar"><div className="topbar-inner"><button className="brand" onClick={() => go('/')} aria-label="العودة إلى الرئيسية"><img className="brand-logo" src="/tilawat-haramain-logo.jpg" alt="شعار تلاوات الحرمين" /><span><strong>تلاوات الحرمين</strong></span></button><div className="header-actions"><button className="theme-toggle" onClick={toggleTheme} aria-label={`تفعيل الوضع ${theme === 'dark' ? 'الفاتح' : 'الداكن'}`} title="تبديل المظهر">{theme === 'dark' ? '☀️ الوضع الفاتح' : '🌙 الوضع الداكن'}</button><button className="mobile-menu" onClick={() => setIsDropdownOpen((v) => !v)} aria-label="فتح القائمة">☰</button></div></div>
+    <header className="topbar"><div className="topbar-inner"><button className="brand" onClick={() => go('/')} aria-label="العودة إلى الرئيسية"><img className="brand-logo" src="/tilawat-haramain-logo.jpg" alt="شعار تلاوات الحرمين" /><span><strong>تلاوات الحرمين</strong></span></button><div className="header-actions"><div className="theme-menu"><button className="theme-toggle" onClick={() => setIsThemeOpen((value) => !value)} aria-haspopup="listbox" aria-expanded={isThemeOpen} title="اختيار المظهر"><span className="theme-dot" aria-hidden="true"></span>{themeLabel}<span className="theme-chevron">⌄</span></button>{isThemeOpen && <div className="theme-options" role="listbox" aria-label="خيارات المظهر"><button className={theme === 'system' ? 'selected' : ''} onClick={() => chooseTheme('system')} role="option" aria-selected={theme === 'system'}>مع النظام</button><button className={theme === 'dark' ? 'selected' : ''} onClick={() => chooseTheme('dark')} role="option" aria-selected={theme === 'dark'}>داكن</button><button className={theme === 'light' ? 'selected' : ''} onClick={() => chooseTheme('light')} role="option" aria-selected={theme === 'light'}>فاتح</button></div>}</div><button className="mobile-menu" onClick={() => setIsDropdownOpen((v) => !v)} aria-label="فتح القائمة">☰</button></div></div>
       <nav className={`main-nav ${isDropdownOpen ? 'nav-open' : ''}`} aria-label="التنقل الرئيسي"><button className={route === '/' ? 'active' : ''} onClick={() => go('/')}>الرئيسية</button><button className={route === '/recitations' ? 'active' : ''} onClick={() => go('/recitations')}>التلاوات</button><button className={route === '/quran' ? 'active' : ''} onClick={() => go('/quran')}>القرآن الكريم</button><button className={route === '/hadith' ? 'active' : ''} onClick={() => go('/hadith')}>الأحاديث النبوية</button><button className={route === '/prophets' ? 'active' : ''} onClick={() => go('/prophets')}>قصص الأنبياء</button><button className={route === '/adhkar' ? 'active' : ''} onClick={() => go('/adhkar')}>الأذكار والأدعية</button><button className={route === '/sunnah' ? 'active' : ''} onClick={() => go('/sunnah')}>سنن النبي</button></nav></header>
     <main className="main-content">{route === '/' && <Home go={go} />}{route === '/recitations' && <Recitations current={currentRecitation} selected={selectedSheikh} setSelected={setSelectedSheikh} open={isDropdownOpen} setOpen={setIsDropdownOpen} audioRef={audioRef} onTime={saveAudio} />}{route === '/sunnah' && <SunnahPage />}{['/quran', '/hadith', '/prophets', '/adhkar', '/seerah', '/search', '/sources'].includes(route) && <ComingSoon route={route} go={go} />}</main>
     <footer className="footer"><div><strong>tilawat haramain</strong><p>محتوى إسلامي، تلاوات خاشعة وأحاديث.</p></div><div className="footer-links"><button onClick={() => go('/quran')}>القرآن الكريم</button><button onClick={() => go('/hadith')}>الأحاديث</button><button onClick={() => go('/sources')}>المصادر والتخريج</button><button onClick={() => go('/search')}>البحث الشامل</button></div><div className="footer-bottom"><span>© 2026 tilawat haramain</span></div></footer>

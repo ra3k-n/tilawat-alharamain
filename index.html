@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>try{const t=localStorage.getItem('tilawat:theme')||'system';const d=t==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.dataset.theme=d}catch(e){}</script>
+    <script>try{const t=localStorage.getItem('tilawat:theme')||'system';const m=window.matchMedia('(prefers-color-scheme: dark)');document.documentElement.dataset.theme=t==='system'?(m.matches?'dark':'light'):t}catch(e){document.documentElement.dataset.theme='dark'}</script>
     <meta name="theme-color" content="#070d1d" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="منصة تلاوات الحرمين" />

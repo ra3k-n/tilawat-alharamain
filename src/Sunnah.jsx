@@ -1,17 +1,8 @@
 import { useState, useEffect } from 'react';
 
-function getTodayKey() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `completed_sunnahs:${y}-${m}-${day}`;
-}
-
 export function SunnahPage() {
   const [completedSunnahs, setCompletedSunnahs] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [storageKey] = useState(getTodayKey);
 
   // قائمة السنن النبوية
   const sunnahList = [
@@ -22,9 +13,9 @@ export function SunnahPage() {
     { id: 5, title: 'أذكار الصباح والمساء', category: 'سنن اليوم والليلة' },
   ];
 
-  // 1. قراءة البيانات المحفوظة فور فتح الصفحة (خاصة باليوم الحالي فقط)
+  // 1. قراءة البيانات المحفوظة فور فتح الصفحة
   useEffect(() => {
-    const saved = localStorage.getItem(storageKey);
+    const saved = localStorage.getItem('completed_sunnahs');
     if (saved) {
       try {
         setCompletedSunnahs(JSON.parse(saved));
@@ -33,14 +24,14 @@ export function SunnahPage() {
       }
     }
     setIsLoaded(true);
-  }, [storageKey]);
+  }, []);
 
-  // 2. حفظ البيانات تلقائياً عند أي تغيير (خاصة باليوم الحالي، تُصفّر مع كل يوم جديد)
+  // 2. حفظ البيانات تلقائياً عند أي تغيير (ولن تضيع عند التحديث)
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem(storageKey, JSON.stringify(completedSunnahs));
+      localStorage.setItem('completed_sunnahs', JSON.stringify(completedSunnahs));
     }
-  }, [completedSunnahs, isLoaded, storageKey]);
+  }, [completedSunnahs, isLoaded]);
 
   // 3. دالة إضافة/إلغاء الإكمال
   const toggleSunnah = (id) => {
@@ -54,7 +45,7 @@ export function SunnahPage() {
   return (
     <section className="sunnah-page" dir="rtl">
       <h1>سنن النبي ﷺ</h1>
-      <p className="sunnah-intro">حدد السنن التي أكملتها اليوم:</p>
+      <p className="sunnah-intro">حدد السنن التي أكملتها اليوم (تُحفظ تلقائياً في جهازك):</p>
 
       <div className="sunnah-list">
         {sunnahList.map((sunnah) => {
@@ -69,7 +60,7 @@ export function SunnahPage() {
                 <h3>{sunnah.title}</h3>
                 <span className="sunnah-category">{sunnah.category}</span>
               </div>
-              <button className={`sunnah-toggle ${isDone ? 'done' : ''}`} aria-pressed={isDone}>
+              <button className={`sunnah-toggle ${isDone ? 'done' : ''}`}>
                 {isDone ? '✓ مكتملة' : 'تحديد كـ مكتملة'}
               </button>
             </div>

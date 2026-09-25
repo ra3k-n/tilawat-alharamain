@@ -1,4 +1,4 @@
 html { background: #070d1d; }
 html[data-theme='light'] { background: #f5f0e7; }
 html, body, #root { min-height: 100%; }
-::selection { background: #19b47a; color: white; }
+::selection { background: #3d5afe; color: white; }

@@ -93,7 +93,7 @@ export default function App() {
   const saveAudio = () => { const position = audioRef.current?.currentTime || 0; setAudioPosition(position); localStorage.setItem(STORAGE.audio, String(position)) }
 
   return <div dir="rtl" className="site-shell">
-    <header className="topbar" ref={navMenuRef}><div className="topbar-inner"><a className="brand" href="/" onClick={goHome} aria-label="العودة إلى الرئيسية"><img className="brand-logo" src="/tilawat-haramain-gold-wordmark.png" alt="تلاوات الحرمين" draggable="false" /></a><div className="header-actions"><div className="theme-menu" ref={themeMenuRef}><button className="theme-toggle" onClick={() => { setIsDropdownOpen(false); setIsThemeOpen((value) => !value) }} aria-haspopup="listbox" aria-expanded={isThemeOpen} title="اختيار المظهر">المظهر<span className="theme-chevron">⌄</span></button>{isThemeOpen && <div className="theme-options" role="listbox" aria-label="خيارات المظهر"><button className={theme === 'dark' ? 'selected' : ''} onClick={() => chooseTheme('dark')} role="option" aria-selected={theme === 'dark'}>داكن</button><button className={theme === 'light' ? 'selected' : ''} onClick={() => chooseTheme('light')} role="option" aria-selected={theme === 'light'}>فاتح</button><button className={theme === 'system' ? 'selected' : ''} onClick={() => chooseTheme('system')} role="option" aria-selected={theme === 'system'}>مع النظام</button></div>}</div><button className="search-icon" onClick={() => go('/search')} aria-label="البحث">🔍</button><button className="mobile-menu" onClick={() => { setIsThemeOpen(false); setIsDropdownOpen((v) => !v) }} aria-label="فتح القائمة" aria-expanded={isDropdownOpen}>☰</button></div></div>
+    <header className="topbar" ref={navMenuRef}><div className="topbar-inner"><a className="brand" href="/" onClick={goHome} aria-label="العودة إلى الرئيسية"><img className="brand-logo" src="/tilawat-haramain-gold-wordmark.png" alt="تلاوات الحرمين" draggable="false" /></a><div className="header-actions"><button className="search-icon" onClick={() => go('/search')} aria-label="البحث"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.2" y2="16.2" /></svg></button><div className="theme-menu" ref={themeMenuRef}><button className="theme-toggle" onClick={() => { setIsDropdownOpen(false); setIsThemeOpen((value) => !value) }} aria-haspopup="listbox" aria-expanded={isThemeOpen} title="اختيار المظهر">المظهر<span className="theme-chevron">⌄</span></button>{isThemeOpen && <div className="theme-options" role="listbox" aria-label="خيارات المظهر"><button className={theme === 'dark' ? 'selected' : ''} onClick={() => chooseTheme('dark')} role="option" aria-selected={theme === 'dark'}>داكن</button><button className={theme === 'light' ? 'selected' : ''} onClick={() => chooseTheme('light')} role="option" aria-selected={theme === 'light'}>فاتح</button><button className={theme === 'system' ? 'selected' : ''} onClick={() => chooseTheme('system')} role="option" aria-selected={theme === 'system'}>مع النظام</button></div>}</div><button className="mobile-menu" onClick={() => { setIsThemeOpen(false); setIsDropdownOpen((v) => !v) }} aria-label="فتح القائمة" aria-expanded={isDropdownOpen}>☰</button></div></div>
       <div className={`nav-drawer-overlay ${isDropdownOpen ? 'open' : ''}`} onClick={() => setIsDropdownOpen(false)}>
         <nav className={`main-nav ${isDropdownOpen ? 'nav-open' : ''}`} aria-label="التنقل الرئيسي" onClick={(e) => e.stopPropagation()}>
           <div className="main-nav-header"><button className="main-nav-close" onClick={() => setIsDropdownOpen(false)} aria-label="إغلاق القائمة">✕</button><span>القائمة الرئيسية</span></div>
@@ -109,7 +109,42 @@ export default function App() {
   </div>
 }
 
-function Home({ go }) { return <section className="home-page"><div className="hero-card"><span className="eyebrow">من الحرمين الشريفين</span><h1>صوتٌ يفتح <em>أبواب السكينة</em></h1><p>محتوى إسلامي، تلاوات خاشعة وأحاديث</p><div className="hero-actions"><button className="primary-btn" onClick={() => go('/recitations')}>استمع إلى التلاوات</button><button className="secondary-btn" onClick={() => go('/quran')}>افتح المصحف</button></div></div><LatestRecitations /></section> }
+const EXPLORE_ITEMS = [
+  { icon: '🎙️', title: 'التلاوات', text: 'تلاوات خاشعة من الحرمين الشريفين', path: '/recitations' },
+  { icon: '📖', title: 'مصحف', text: 'تصفح القرآن الكريم', path: '/quran' },
+  { icon: '📜', title: 'الأحاديث النبوية', text: 'أحاديث موثقة من السنة', path: '/hadith' },
+  { icon: '🕌', title: 'قصص الأنبياء', text: 'العبرة والعظة من سيرهم', path: '/prophets' },
+  { icon: '🤲', title: 'الأذكار والأدعية', text: 'أذكار الصباح والمساء', path: '/adhkar' },
+  { icon: '✅', title: 'سنن النبي', text: 'تابع سننك اليومية', path: '/sunnah' },
+]
+
+function Home({ go }) {
+  return <section className="home-page">
+    <div className="hero-card"><span className="eyebrow">من الحرمين الشريفين</span><h1>صوتٌ يفتح <em>أبواب السكينة</em></h1><p>محتوى إسلامي، تلاوات خاشعة وأحاديث</p><div className="hero-actions"><button className="primary-btn" onClick={() => go('/recitations')}>استمع إلى التلاوات</button><button className="secondary-btn" onClick={() => go('/quran')}>افتح المصحف</button></div></div>
+    <section className="explore-section">
+      <div className="section-heading"><span className="eyebrow">استكشف</span><h2>كل ما تحتاجه في <em>مكان واحد</em></h2></div>
+      <div className="explore-grid">{EXPLORE_ITEMS.map((item) => <button key={item.path} className="explore-card" onClick={() => go(item.path)}><span className="explore-icon">{item.icon}</span><strong>{item.title}</strong><small>{item.text}</small></button>)}</div>
+    </section>
+    <LatestRecitations />
+    <section className="stats-section">
+      <div className="stats-grid">
+        <div className="stat-item"><strong>{sheikhsData.length}</strong><span>مشايخ تلاوة</span></div>
+        <div className="stat-item"><strong>٢</strong><span>الحرمين الشريفين</span></div>
+        <div className="stat-item"><strong>٦</strong><span>أقسام إسلامية</span></div>
+        <div className="stat-item"><strong>يوميًا</strong><span>تحديث مستمر</span></div>
+      </div>
+    </section>
+    <section className="about-summary">
+      <div className="section-heading"><span className="eyebrow">تعرف علينا</span><h2>من <em>نحن</em></h2><p>تلاوات الحرمين — منصة إسلامية لنشر تلاوات من الحرم المكي والمدني، مع محتوى إسلامي موثوق: أحاديث نبوية، قصص الأنبياء، أذكار وأدعية، وسنن النبي ﷺ.</p></div>
+      <div className="hero-actions"><button className="secondary-btn" onClick={() => go('/about')}>اقرأ المزيد</button></div>
+    </section>
+    <section className="final-cta">
+      <h2>ابدأ رحلتك الإيمانية <em>اليوم</em></h2>
+      <p>استمع لأجمل التلاوات من الحرمين الشريفين الآن</p>
+      <button className="primary-btn" onClick={() => go('/recitations')}>استمع إلى التلاوات</button>
+    </section>
+  </section>
+}
 
 function LatestRecitations() {
   const [makkah, setMakkah] = useState(null)
@@ -136,7 +171,7 @@ function LatestRecitations() {
             <div className="yt-thumb">
               {c.data && c.data.thumbnail ? <img src={c.data.thumbnail} alt={c.data.title} loading="lazy" /> : <div className="yt-thumb-placeholder" />}
               <span className="yt-play">▶</span>
-              {!loading && !failed && <span className="yt-badge">أحدث تلاوة</span>}
+              {!loading && !failed && <span className="yt-badge">جديد</span>}
             </div>
           </a>
           <div className="yt-info">

@@ -100,7 +100,7 @@ function SetupForm({ initial, onCancel, onSave }) {
     onSave({
       name: name.trim() || 'ختمتي',
       goal,
-      startDate: new Date().toISOString(),
+      startDate: initial ? initial.startDate.toISOString() : new Date().toISOString(),
       totalDays: Math.max(1, Math.round(totalDays)),
       startJuz: Math.min(30, Math.max(1, Math.round(startJuz))),
       reminder,

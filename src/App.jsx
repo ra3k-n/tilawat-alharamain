@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { SunnahPage } from './Sunnah'
+import { KhatmahPage } from './Khatmah'
 import './App.css'
 
 const STORAGE = { route: 'tilawat:last-route', theme: 'tilawat:theme', sheikh: 'tilawat:selected-sheikh', audio: 'tilawat:audio-position' }
-const routeLabels = { '/': 'الرئيسية', '/recitations': 'التلاوات', '/quran': 'مصحف', '/hadith': 'الأحاديث النبوية', '/prophets': 'قصص الأنبياء عليهم السلام', '/adhkar': 'الأذكار والأدعية', '/seerah': 'السيرة النبوية', '/search': 'البحث الشامل', '/sources': 'المصادر والتخريج', '/sunnah': 'سنن النبي', '/about': 'من نحن' }
+const routeLabels = { '/': 'الرئيسية', '/recitations': 'التلاوات', '/quran': 'مصحف', '/khatmah': 'خطة الختمة', '/hadith': 'الأحاديث النبوية', '/prophets': 'قصص الأنبياء عليهم السلام', '/adhkar': 'الأذكار والأدعية', '/seerah': 'السيرة النبوية', '/search': 'البحث الشامل', '/sources': 'المصادر والتخريج', '/sunnah': 'سنن النبي', '/about': 'من نحن' }
 const sheikhsData = [
   { name: 'الشيخ ياسر الدوسري', title: 'صلاة المغرب — 18 محرم 1448 هـ', surah: 'سورة الكهف 107 - 110، سورة مريم 96 - 98', location: 'المسجد الحرام', audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/NYHfkEdjTzaUAdcT.mp3' },
   { name: 'الشيخ فيصل غزاوي', title: 'صلاة المغرب — 2 ربيع الآخر 1448 هـ', surah: 'سورتي الكوثر والنصر', location: 'المسجد الحرام', audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/WuXffcYMfFZTTDoW.mp3' },
@@ -46,12 +47,12 @@ export default function App() {
   const [isThemeOpen, setIsThemeOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isSheikhOpen, setIsSheikhOpen] = useState(false)
+  const [isQuranMenuOpen, setIsQuranMenuOpen] = useState(false)
   const [selectedSheikh, setSelectedSheikh] = useState(() => getStored(STORAGE.sheikh, sheikhsData[0].name))
   const [audioPosition, setAudioPosition] = useState(() => Number(getStored(STORAGE.audio, '0')) || 0)
   const audioRef = useRef(null)
   const themeMenuRef = useRef(null)
   const sheikhMenuRef = useRef(null)
-  const navMenuRef = useRef(null)
   const currentRecitation = useMemo(() => sheikhsData.find((s) => s.name === selectedSheikh) || sheikhsData[0], [selectedSheikh])
 
   useEffect(() => { const onPop = () => setRoute(readRoute()); window.addEventListener('popstate', onPop); return () => window.removeEventListener('popstate', onPop) }, [])
@@ -78,29 +79,39 @@ export default function App() {
   useEffect(() => { localStorage.setItem(STORAGE.sheikh, selectedSheikh) }, [selectedSheikh])
   useEffect(() => { const audio = audioRef.current; if (!audio) return; const restore = () => { if (audioPosition > 0 && audioPosition < audio.duration) audio.currentTime = audioPosition }; audio.addEventListener('loadedmetadata', restore); return () => audio.removeEventListener('loadedmetadata', restore) }, [currentRecitation.audioSrc, audioPosition])
   useEffect(() => {
-    if (!isThemeOpen && !isSheikhOpen && !isDropdownOpen) return undefined
+    if (!isThemeOpen && !isSheikhOpen) return undefined
     const handleOutside = (event) => {
       if (isThemeOpen && themeMenuRef.current && !themeMenuRef.current.contains(event.target)) setIsThemeOpen(false)
       if (isSheikhOpen && sheikhMenuRef.current && !sheikhMenuRef.current.contains(event.target)) setIsSheikhOpen(false)
-      if (isDropdownOpen && navMenuRef.current && !navMenuRef.current.contains(event.target)) setIsDropdownOpen(false)
     }
     document.addEventListener('mousedown', handleOutside)
     return () => document.removeEventListener('mousedown', handleOutside)
-  }, [isThemeOpen, isSheikhOpen, isDropdownOpen])
+  }, [isThemeOpen, isSheikhOpen])
+  useEffect(() => {
+    if (!isDropdownOpen) return undefined
+    const onKey = (event) => { if (event.key === 'Escape') setIsDropdownOpen(false) }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [isDropdownOpen])
   const go = (path) => { setIsDropdownOpen(false); setIsSheikhOpen(false); navigate(path) }
   const goHome = (e) => { e.preventDefault(); go('/') }
   const chooseTheme = (value) => { setTheme(value); setIsThemeOpen(false) }
   const saveAudio = () => { const position = audioRef.current?.currentTime || 0; setAudioPosition(position); localStorage.setItem(STORAGE.audio, String(position)) }
 
   return <div dir="rtl" className="site-shell">
-    <header className="topbar" ref={navMenuRef}><div className="topbar-inner"><a className="brand" href="/" onClick={goHome} aria-label="العودة إلى الرئيسية"><img className="brand-logo" src="/tilawat-haramain-gold-wordmark.png" alt="تلاوات الحرمين" draggable="false" /></a><div className="header-actions"><button className="search-icon" onClick={() => go('/search')} aria-label="البحث"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.2" y2="16.2" /></svg></button><div className="theme-menu" ref={themeMenuRef}><button className="theme-toggle" onClick={() => { setIsDropdownOpen(false); setIsThemeOpen((value) => !value) }} aria-haspopup="listbox" aria-expanded={isThemeOpen} title="اختيار المظهر">المظهر<span className="theme-chevron">⌄</span></button>{isThemeOpen && <div className="theme-options" role="listbox" aria-label="خيارات المظهر"><button className={theme === 'dark' ? 'selected' : ''} onClick={() => chooseTheme('dark')} role="option" aria-selected={theme === 'dark'}>داكن</button><button className={theme === 'light' ? 'selected' : ''} onClick={() => chooseTheme('light')} role="option" aria-selected={theme === 'light'}>فاتح</button><button className={theme === 'system' ? 'selected' : ''} onClick={() => chooseTheme('system')} role="option" aria-selected={theme === 'system'}>مع النظام</button></div>}</div><button className="mobile-menu" onClick={() => { setIsThemeOpen(false); setIsDropdownOpen((v) => !v) }} aria-label="فتح القائمة" aria-expanded={isDropdownOpen}>☰</button></div></div>
+    <header className="topbar"><div className="topbar-inner"><a className="brand" href="/" onClick={goHome} aria-label="العودة إلى الرئيسية"><img className="brand-logo" src="/tilawat-haramain-gold-wordmark.png" alt="تلاوات الحرمين" draggable="false" /></a><div className="header-actions"><button className="search-icon" onClick={() => go('/search')} aria-label="البحث"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.2" y2="16.2" /></svg></button><div className="theme-menu" ref={themeMenuRef}><button className="theme-toggle" onClick={() => { setIsDropdownOpen(false); setIsThemeOpen((value) => !value) }} aria-haspopup="listbox" aria-expanded={isThemeOpen} title="اختيار المظهر">المظهر<span className="theme-chevron">⌄</span></button>{isThemeOpen && <div className="theme-options" role="listbox" aria-label="خيارات المظهر"><button className={theme === 'dark' ? 'selected' : ''} onClick={() => chooseTheme('dark')} role="option" aria-selected={theme === 'dark'}>داكن</button><button className={theme === 'light' ? 'selected' : ''} onClick={() => chooseTheme('light')} role="option" aria-selected={theme === 'light'}>فاتح</button><button className={theme === 'system' ? 'selected' : ''} onClick={() => chooseTheme('system')} role="option" aria-selected={theme === 'system'}>مع النظام</button></div>}</div><button className="mobile-menu" onClick={() => { setIsThemeOpen(false); setIsDropdownOpen((v) => !v) }} aria-label="فتح القائمة" aria-expanded={isDropdownOpen}>☰</button></div></div>
+    </header>
       <div className={`nav-drawer-overlay ${isDropdownOpen ? 'open' : ''}`} onClick={() => setIsDropdownOpen(false)}>
         <nav className={`main-nav ${isDropdownOpen ? 'nav-open' : ''}`} aria-label="التنقل الرئيسي" onClick={(e) => e.stopPropagation()}>
           <div className="main-nav-header"><button className="main-nav-close" onClick={() => setIsDropdownOpen(false)} aria-label="إغلاق القائمة">✕</button><span>القائمة الرئيسية</span></div>
-          <button className={route === '/' ? 'active' : ''} onClick={() => go('/')}>الرئيسية</button><button className={route === '/recitations' ? 'active' : ''} onClick={() => go('/recitations')}>التلاوات</button><button className={route === '/quran' ? 'active' : ''} onClick={() => go('/quran')}>مصحف</button><button className={route === '/hadith' ? 'active' : ''} onClick={() => go('/hadith')}>الأحاديث النبوية</button><button className={route === '/prophets' ? 'active' : ''} onClick={() => go('/prophets')}>قصص الأنبياء</button><button className={route === '/adhkar' ? 'active' : ''} onClick={() => go('/adhkar')}>الأذكار والأدعية</button><button className={route === '/sunnah' ? 'active' : ''} onClick={() => go('/sunnah')}>سنن النبي</button>
+          <button className={route === '/' ? 'active' : ''} onClick={() => go('/')}>الرئيسية</button><button className={route === '/recitations' ? 'active' : ''} onClick={() => go('/recitations')}>التلاوات</button>
+          <button className={`nav-expandable ${isQuranMenuOpen ? 'open' : ''} ${route === '/quran' || route === '/khatmah' ? 'active' : ''}`} onClick={() => setIsQuranMenuOpen((v) => !v)} aria-expanded={isQuranMenuOpen}>مصحف<span className="nav-chevron">‹</span></button>
+          {isQuranMenuOpen && <div className="nav-submenu"><button className={route === '/quran' ? 'active' : ''} onClick={() => go('/quran')}>فتح المصحف</button><button className={route === '/khatmah' ? 'active' : ''} onClick={() => go('/khatmah')}>بدء ختمة</button></div>}
+          <button className={route === '/hadith' ? 'active' : ''} onClick={() => go('/hadith')}>الأحاديث النبوية</button><button className={route === '/prophets' ? 'active' : ''} onClick={() => go('/prophets')}>قصص الأنبياء</button><button className={route === '/adhkar' ? 'active' : ''} onClick={() => go('/adhkar')}>الأذكار والأدعية</button><button className={route === '/sunnah' ? 'active' : ''} onClick={() => go('/sunnah')}>سنن النبي</button>
         </nav>
-      </div></header>
-    <main className="main-content">{route === '/' && <Home go={go} />}{route === '/recitations' && <Recitations current={currentRecitation} selected={selectedSheikh} setSelected={setSelectedSheikh} open={isSheikhOpen} setOpen={setIsSheikhOpen} menuRef={sheikhMenuRef} audioRef={audioRef} onTime={saveAudio} />}{route === '/sunnah' && <SunnahPage />}{route === '/about' && <About go={go} />}{['/quran', '/hadith', '/prophets', '/adhkar', '/seerah', '/search', '/sources'].includes(route) && <ComingSoon route={route} />}</main>
+      </div>
+
+    <main className="main-content">{route === '/' && <Home go={go} />}{route === '/recitations' && <Recitations current={currentRecitation} selected={selectedSheikh} setSelected={setSelectedSheikh} open={isSheikhOpen} setOpen={setIsSheikhOpen} menuRef={sheikhMenuRef} audioRef={audioRef} onTime={saveAudio} />}{route === '/sunnah' && <SunnahPage />}{route === '/khatmah' && <KhatmahPage />}{route === '/about' && <About go={go} />}{['/quran', '/hadith', '/prophets', '/adhkar', '/seerah', '/search', '/sources'].includes(route) && <ComingSoon route={route} />}</main>
     <footer className="footer">
       <div className="social-row" aria-label="روابط التواصل الاجتماعي">{SOCIAL_LINKS.map((s) => <a key={s.key} className="social-icon" href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.label} title={s.label}><SocialGlyph type={s.key} /></a>)}</div>
       <div className="footer-links"><button onClick={() => go('/about')}>من نحن</button></div>
@@ -123,7 +134,7 @@ function Home({ go }) {
     <div className="hero-card"><span className="eyebrow">من الحرمين الشريفين</span><h1>صوتٌ يفتح <em>أبواب السكينة</em></h1><p>محتوى إسلامي، تلاوات خاشعة وأحاديث</p><div className="hero-actions"><button className="primary-btn" onClick={() => go('/recitations')}>استمع إلى التلاوات</button><button className="secondary-btn" onClick={() => go('/quran')}>افتح المصحف</button></div></div>
     <section className="explore-section">
       <div className="section-heading"><span className="eyebrow">استكشف</span><h2>كل ما تحتاجه في <em>مكان واحد</em></h2></div>
-      <div className="explore-grid">{EXPLORE_ITEMS.map((item) => <button key={item.path} className="explore-card" onClick={() => go(item.path)}><span className="explore-icon">{item.icon}</span><strong>{item.title}</strong><small>{item.text}</small></button>)}</div>
+      <div className="explore-grid">{EXPLORE_ITEMS.map((item) => <button key={item.path} className="explore-card" onClick={() => go(item.path)}><strong>{item.title}</strong><small>{item.text}</small></button>)}</div>
     </section>
     <LatestRecitations />
     <section className="stats-section">

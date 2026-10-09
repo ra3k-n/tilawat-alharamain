@@ -4,14 +4,22 @@ import { KhatmahPage } from './Khatmah'
 import './App.css'
 
 const STORAGE = { route: 'tilawat:last-route', theme: 'tilawat:theme', sheikh: 'tilawat:selected-sheikh', audio: 'tilawat:audio-position' }
-const routeLabels = { '/': 'الرئيسية', '/recitations': 'التلاوات', '/quran': 'مصحف', '/khatmah': 'خطة الختمة', '/hadith': 'الأحاديث النبوية', '/prophets': 'قصص الأنبياء عليهم السلام', '/adhkar': 'الأذكار والأدعية', '/seerah': 'السيرة النبوية', '/search': 'البحث الشامل', '/sources': 'المصادر والتخريج', '/sunnah': 'سنن النبي', '/about': 'من نحن' }
+
+const routeLabels = {
+  '/': 'الرئيسية', '/recitations': 'التلاوات', '/fourud': 'الفروض', '/quran': 'مصحف', '/khatmah': 'خطة الختمة',
+  '/hadith': 'الأحاديث النبوية', '/prophets': 'قصص الأنبياء عليهم السلام', '/adhkar': 'الأذكار', '/adhkar/morning': 'أذكار الصباح', '/adhkar/evening': 'أذكار المساء', '/duas': 'الأدعية',
+  '/seerah': 'السيرة النبوية', '/sources': 'المصادر والتخريج', '/sunnah': 'سنن النبي', '/about': 'من نحن', '/about/options': 'الخيارات',
+}
+
 const sheikhsData = [
   { name: 'الشيخ ياسر الدوسري', title: 'صلاة المغرب — 18 محرم 1448 هـ', surah: 'سورة الكهف 107 - 110، سورة مريم 96 - 98', location: 'المسجد الحرام', audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/NYHfkEdjTzaUAdcT.mp3' },
   { name: 'الشيخ فيصل غزاوي', title: 'صلاة المغرب — 2 ربيع الآخر 1448 هـ', surah: 'سورتي الكوثر والنصر', location: 'المسجد الحرام', audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/WuXffcYMfFZTTDoW.mp3' },
   { name: 'الشيخ الوليد الشمسان', title: 'صلاة الفجر — 1 شعبان 1447 هـ', surah: 'سورة القصص، من الآية 76 إلى 88', location: 'المسجد الحرام', audioSrc: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663960426511/bWIptAoginZcHYqQ.mp3' },
 ]
+
 const YT_API_KEY = 'AIzaSyBegsgvawpMrieT7BQJ0tpfSbRDne2wNeU'
 const PLAYLISTS = { makkah: 'PLaMyTUHy7DDY', madinah: 'PLA0-IhTilBDQ' }
+
 const SOCIAL_LINKS = [
   { key: 'tiktok', label: 'تيك توك', url: 'https://www.tiktok.com/@tilawat_2.h' },
   { key: 'youtube', label: 'يوتيوب', url: 'https://www.youtube.com/@tilawat_2.h' },
@@ -20,6 +28,42 @@ const SOCIAL_LINKS = [
   { key: 'telegram', label: 'تيليجرام', url: 'https://t.me/Tilawat_2_h' },
   { key: 'facebook', label: 'فيسبوك', url: 'https://www.facebook.com/tilawat.2.h' },
 ]
+
+const ABOUT_OPTIONS = [
+  { title: 'الأحاديث النبوية', text: 'أحاديث موثقة من السنة النبوية', path: '/hadith' },
+  { title: 'قصص الأنبياء', text: 'العبرة والعظة من سيرهم عليهم السلام', path: '/prophets' },
+  { title: 'أذكار وأدعية', text: 'أذكار الصباح والمساء والأدعية', path: '/adhkar' },
+  { title: 'سنن النبي ﷺ', text: 'تابع سننك اليومية', path: '/sunnah' },
+]
+
+// nav tree: 'link' items navigate directly, 'expandable' items reveal their children in-place
+const NAV_TREE = [
+  { type: 'link', path: '/', label: 'الرئيسية' },
+  { type: 'expandable', key: 'recitations', label: 'التلاوات', children: [
+    { type: 'link', path: '/recitations', label: 'تلاوات خاشعة' },
+    { type: 'link', path: '/fourud', label: 'الفروض' },
+  ] },
+  { type: 'expandable', key: 'quran', label: 'مصحف', children: [
+    { type: 'link', path: '/quran', label: 'فتح المصحف' },
+    { type: 'link', path: '/khatmah', label: 'بدء ختمة' },
+  ] },
+  { type: 'link', path: '/hadith', label: 'الأحاديث النبوية' },
+  { type: 'link', path: '/prophets', label: 'قصص الأنبياء' },
+  { type: 'expandable', key: 'adhkar-root', label: 'أذكار وغيره', children: [
+    { type: 'expandable', key: 'adhkar-sub', label: 'الأذكار', children: [
+      { type: 'link', path: '/adhkar/morning', label: 'أذكار الصباح' },
+      { type: 'link', path: '/adhkar/evening', label: 'أذكار المساء' },
+      { type: 'link', path: '/adhkar', label: 'كل الأذكار' },
+    ] },
+    { type: 'link', path: '/duas', label: 'الأدعية' },
+  ] },
+  { type: 'link', path: '/sunnah', label: 'سنن النبي' },
+]
+
+function flattenPaths(item) {
+  if (item.type === 'link') return [item.path]
+  return item.children.flatMap(flattenPaths)
+}
 
 function getStored(key, fallback = '') { try { return localStorage.getItem(key) || fallback } catch { return fallback } }
 function readRoute() { const path = window.location.pathname; return routeLabels[path] ? path : getStored(STORAGE.route, '/') }
@@ -34,120 +78,158 @@ async function fetchLatestFromPlaylist(playlistId) {
   if (!items.length) return null
   const latest = items.reduce((a, b) => (new Date(a.snippet.publishedAt) > new Date(b.snippet.publishedAt) ? a : b))
   const thumb = latest.snippet.thumbnails || {}
-  return {
-    videoId: latest.snippet.resourceId.videoId,
-    title: latest.snippet.title,
-    thumbnail: (thumb.medium || thumb.default || {}).url || '',
-  }
+  return { videoId: latest.snippet.resourceId.videoId, title: latest.snippet.title, thumbnail: (thumb.medium || thumb.default || {}).url || '' }
 }
+
+// ---- real search index: nav pages + sheikh names + sunnah items ----
+const SUNNAH_NAMES = ['التبكير إلى صلاة الجمعة', 'صلاة الضحى', 'قراءة سورة الكهف يوم الجمعة', 'الوتر قبل النوم', 'أذكار الصباح والمساء']
+function buildSearchIndex() {
+  const pages = Object.entries(routeLabels).map(([path, label]) => ({ title: label, path, kind: 'صفحة' }))
+  const sheikhs = sheikhsData.map((s) => ({ title: s.name, path: '/recitations', kind: 'شيخ' }))
+  const sunnahs = SUNNAH_NAMES.map((n) => ({ title: n, path: '/sunnah', kind: 'سنة' }))
+  return [...pages, ...sheikhs, ...sunnahs]
+}
+// match regardless of diacritics and common letter variants (أ/إ/آ, ة/ه, ى/ي)
+function normalizeArabic(text) {
+  return text
+    .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .toLowerCase()
+}
+const SEARCH_INDEX = buildSearchIndex()
 
 export default function App() {
   const [route, setRoute] = useState(readRoute)
-  const [theme, setTheme] = useState(() => getStored(STORAGE.theme, 'system'))
-  const [isThemeOpen, setIsThemeOpen] = useState(false)
+  const [theme, setTheme] = useState(() => getStored(STORAGE.theme, '') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isSheikhOpen, setIsSheikhOpen] = useState(false)
-  const [isQuranMenuOpen, setIsQuranMenuOpen] = useState(false)
+  const [expanded, setExpanded] = useState({})
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchFocused, setSearchFocused] = useState(false)
   const [selectedSheikh, setSelectedSheikh] = useState(() => getStored(STORAGE.sheikh, sheikhsData[0].name))
   const [audioPosition, setAudioPosition] = useState(() => Number(getStored(STORAGE.audio, '0')) || 0)
   const audioRef = useRef(null)
-  const themeMenuRef = useRef(null)
   const sheikhMenuRef = useRef(null)
+  const navMenuRef = useRef(null)
+  const searchRef = useRef(null)
   const currentRecitation = useMemo(() => sheikhsData.find((s) => s.name === selectedSheikh) || sheikhsData[0], [selectedSheikh])
 
   useEffect(() => { const onPop = () => setRoute(readRoute()); window.addEventListener('popstate', onPop); return () => window.removeEventListener('popstate', onPop) }, [])
   useEffect(() => {
     localStorage.setItem(STORAGE.route, route)
     localStorage.setItem(STORAGE.theme, theme)
-    const applyTheme = () => {
-      const resolved = theme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme
-      document.documentElement.dataset.theme = resolved
-    }
-    applyTheme()
-    if (theme !== 'system') return undefined
-    const media = window.matchMedia('(prefers-color-scheme: dark)')
-    const onSystemThemeChange = (event) => {
-      document.documentElement.dataset.theme = event.matches ? 'dark' : 'light'
-    }
-    if (media.addEventListener) media.addEventListener('change', onSystemThemeChange)
-    else media.addListener(onSystemThemeChange)
-    return () => {
-      if (media.removeEventListener) media.removeEventListener('change', onSystemThemeChange)
-      else media.removeListener(onSystemThemeChange)
-    }
+    document.documentElement.dataset.theme = theme
   }, [route, theme])
   useEffect(() => { localStorage.setItem(STORAGE.sheikh, selectedSheikh) }, [selectedSheikh])
   useEffect(() => { const audio = audioRef.current; if (!audio) return; const restore = () => { if (audioPosition > 0 && audioPosition < audio.duration) audio.currentTime = audioPosition }; audio.addEventListener('loadedmetadata', restore); return () => audio.removeEventListener('loadedmetadata', restore) }, [currentRecitation.audioSrc, audioPosition])
   useEffect(() => {
-    if (!isThemeOpen && !isSheikhOpen) return undefined
+    if (!isSheikhOpen && !isDropdownOpen && !searchFocused) return undefined
     const handleOutside = (event) => {
-      if (isThemeOpen && themeMenuRef.current && !themeMenuRef.current.contains(event.target)) setIsThemeOpen(false)
       if (isSheikhOpen && sheikhMenuRef.current && !sheikhMenuRef.current.contains(event.target)) setIsSheikhOpen(false)
+      if (isDropdownOpen && navMenuRef.current && !navMenuRef.current.contains(event.target)) setIsDropdownOpen(false)
+      if (searchFocused && searchRef.current && !searchRef.current.contains(event.target)) setSearchFocused(false)
     }
     document.addEventListener('mousedown', handleOutside)
     return () => document.removeEventListener('mousedown', handleOutside)
-  }, [isThemeOpen, isSheikhOpen])
+  }, [isSheikhOpen, isDropdownOpen, searchFocused])
   useEffect(() => {
     if (!isDropdownOpen) return undefined
     const onKey = (event) => { if (event.key === 'Escape') setIsDropdownOpen(false) }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [isDropdownOpen])
-  const go = (path) => { setIsDropdownOpen(false); setIsSheikhOpen(false); navigate(path) }
+
+  const go = (path) => { setIsDropdownOpen(false); setIsSheikhOpen(false); setExpanded({}); setSearchQuery(''); setSearchFocused(false); navigate(path) }
   const goHome = (e) => { e.preventDefault(); go('/') }
-  const chooseTheme = (value) => { setTheme(value); setIsThemeOpen(false) }
+  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
+  const toggleExpanded = (key) => setExpanded((prev) => ({ ...prev, [key]: !prev[key] }))
   const saveAudio = () => { const position = audioRef.current?.currentTime || 0; setAudioPosition(position); localStorage.setItem(STORAGE.audio, String(position)) }
 
+  const searchResults = useMemo(() => {
+    const q = normalizeArabic(searchQuery.trim())
+    if (!q) return []
+    return SEARCH_INDEX.filter((item) => normalizeArabic(item.title).includes(q)).slice(0, 8)
+  }, [searchQuery])
+
   return <div dir="rtl" className="site-shell">
-    <header className="topbar"><div className="topbar-inner"><a className="brand" href="/" onClick={goHome} aria-label="العودة إلى الرئيسية"><img className="brand-logo" src="/tilawat-haramain-gold-wordmark.png" alt="تلاوات الحرمين" draggable="false" /></a><div className="header-actions"><button className="search-icon" onClick={() => go('/search')} aria-label="البحث"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.2" y2="16.2" /></svg></button><div className="theme-menu" ref={themeMenuRef}><button className="theme-toggle" onClick={() => { setIsDropdownOpen(false); setIsThemeOpen((value) => !value) }} aria-haspopup="listbox" aria-expanded={isThemeOpen} title="اختيار المظهر">المظهر<span className="theme-chevron">⌄</span></button>{isThemeOpen && <div className="theme-options" role="listbox" aria-label="خيارات المظهر"><button className={theme === 'dark' ? 'selected' : ''} onClick={() => chooseTheme('dark')} role="option" aria-selected={theme === 'dark'}>داكن</button><button className={theme === 'light' ? 'selected' : ''} onClick={() => chooseTheme('light')} role="option" aria-selected={theme === 'light'}>فاتح</button><button className={theme === 'system' ? 'selected' : ''} onClick={() => chooseTheme('system')} role="option" aria-selected={theme === 'system'}>مع النظام</button></div>}</div><button className="mobile-menu" onClick={() => { setIsThemeOpen(false); setIsDropdownOpen((v) => !v) }} aria-label="فتح القائمة" aria-expanded={isDropdownOpen}>☰</button></div></div>
-    </header>
+    <header className="topbar"><div className="topbar-inner">
+      <a className="brand" href="/" onClick={goHome} aria-label="العودة إلى الرئيسية" title="العودة إلى الرئيسية"><img className="brand-logo" src="/tilawat-haramain-emblem.png" alt="تلاوات الحرمين" draggable="false" /></a>
+      <div className="header-actions">
+        <div className="search-wrap" ref={searchRef}>
+          <svg className="search-icon-glyph" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.2" y2="16.2" /></svg>
+          <input type="text" className="search-input" placeholder="بحث..." value={searchQuery} onFocus={() => setSearchFocused(true)} onChange={(e) => setSearchQuery(e.target.value)} title="بحث بالموقع" />
+          {searchFocused && searchQuery.trim() && (
+            <div className="search-results">
+              {searchResults.length === 0
+                ? <div className="search-empty">لا نتائج لـ"{searchQuery}"</div>
+                : searchResults.map((r, i) => <button key={i} onClick={() => go(r.path)}><span>{r.title}</span><small>{r.kind}</small></button>)}
+            </div>
+          )}
+        </div>
+        <button className="theme-toggle" onClick={toggleTheme} title={theme === 'dark' ? 'التبديل إلى المظهر الفاتح' : 'التبديل إلى المظهر الداكن'} aria-label="تبديل المظهر">
+          <span className={`theme-switch-icon ${theme}`} aria-hidden="true"><span className="theme-switch-circle" /></span>
+          <span className="theme-switch-label">المظهر {theme === 'dark' ? 'الداكن' : 'الفاتح'}</span>
+        </button>
+        <button className="mobile-menu" onClick={() => setIsDropdownOpen((v) => !v)} aria-label="فتح القائمة" title="فتح القائمة" aria-expanded={isDropdownOpen}>☰</button>
+      </div>
+    </div>
       <div className={`nav-drawer-overlay ${isDropdownOpen ? 'open' : ''}`} onClick={() => setIsDropdownOpen(false)}>
-        <nav className={`main-nav ${isDropdownOpen ? 'nav-open' : ''}`} aria-label="التنقل الرئيسي" onClick={(e) => e.stopPropagation()}>
-          <div className="main-nav-header"><button className="main-nav-close" onClick={() => setIsDropdownOpen(false)} aria-label="إغلاق القائمة">✕</button><span>القائمة الرئيسية</span></div>
-          <button className={route === '/' ? 'active' : ''} onClick={() => go('/')}>الرئيسية</button><button className={route === '/recitations' ? 'active' : ''} onClick={() => go('/recitations')}>التلاوات</button>
-          <button className={`nav-expandable ${isQuranMenuOpen ? 'open' : ''} ${route === '/quran' || route === '/khatmah' ? 'active' : ''}`} onClick={() => setIsQuranMenuOpen((v) => !v)} aria-expanded={isQuranMenuOpen}>مصحف<span className="nav-chevron">‹</span></button>
-          {isQuranMenuOpen && <div className="nav-submenu"><button className={route === '/quran' ? 'active' : ''} onClick={() => go('/quran')}>فتح المصحف</button><button className={route === '/khatmah' ? 'active' : ''} onClick={() => go('/khatmah')}>بدء ختمة</button></div>}
-          <button className={route === '/hadith' ? 'active' : ''} onClick={() => go('/hadith')}>الأحاديث النبوية</button><button className={route === '/prophets' ? 'active' : ''} onClick={() => go('/prophets')}>قصص الأنبياء</button><button className={route === '/adhkar' ? 'active' : ''} onClick={() => go('/adhkar')}>الأذكار والأدعية</button><button className={route === '/sunnah' ? 'active' : ''} onClick={() => go('/sunnah')}>سنن النبي</button>
+        <nav className={`main-nav ${isDropdownOpen ? 'nav-open' : ''}`} ref={navMenuRef} aria-label="التنقل الرئيسي" onClick={(e) => e.stopPropagation()}>
+          <div className="main-nav-header"><button className="main-nav-close" onClick={() => setIsDropdownOpen(false)} aria-label="إغلاق القائمة" title="إغلاق القائمة">✕</button><span>القائمة</span></div>
+          {NAV_TREE.map((item) => <NavItem key={item.key || item.path} item={item} route={route} go={go} expanded={expanded} onToggle={toggleExpanded} />)}
         </nav>
       </div>
-
-    <main className="main-content">{route === '/' && <Home go={go} />}{route === '/recitations' && <Recitations current={currentRecitation} selected={selectedSheikh} setSelected={setSelectedSheikh} open={isSheikhOpen} setOpen={setIsSheikhOpen} menuRef={sheikhMenuRef} audioRef={audioRef} onTime={saveAudio} />}{route === '/sunnah' && <SunnahPage />}{route === '/khatmah' && <KhatmahPage />}{route === '/about' && <About go={go} />}{['/quran', '/hadith', '/prophets', '/adhkar', '/seerah', '/search', '/sources'].includes(route) && <ComingSoon route={route} />}</main>
+    </header>
+    <main className="main-content">
+      {route === '/' && <Home go={go} />}
+      {route === '/recitations' && <Recitations current={currentRecitation} selected={selectedSheikh} setSelected={setSelectedSheikh} open={isSheikhOpen} setOpen={setIsSheikhOpen} menuRef={sheikhMenuRef} audioRef={audioRef} onTime={saveAudio} />}
+      {route === '/fourud' && <FourudPage />}
+      {route === '/sunnah' && <SunnahPage />}
+      {route === '/khatmah' && <KhatmahPage />}
+      {route === '/about' && <About go={go} />}
+      {route === '/about/options' && <AboutOptions go={go} />}
+      {['/quran', '/hadith', '/prophets', '/adhkar', '/adhkar/morning', '/adhkar/evening', '/duas', '/seerah', '/sources'].includes(route) && <ComingSoon route={route} />}
+    </main>
     <footer className="footer">
-      <div className="social-row" aria-label="روابط التواصل الاجتماعي">{SOCIAL_LINKS.map((s) => <a key={s.key} className="social-icon" href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.label} title={s.label}><SocialGlyph type={s.key} /></a>)}</div>
-      <div className="footer-links"><button onClick={() => go('/about')}>من نحن</button></div>
+      <div className="connect-row" aria-label="روابط التواصل الاجتماعي">{SOCIAL_LINKS.map((s) => <a key={s.key} className="platform-icon" href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.label} title={s.label}><PlatformGlyph type={s.key} /></a>)}</div>
+      <div className="footer-links"><button onClick={() => go('/about')} title="صفحة من نحن">من نحن</button></div>
       <div className="footer-bottom"><span>© 2026 تلاوات الحرمين — جميع الحقوق محفوظة</span></div>
     </footer>
   </div>
 }
 
-const EXPLORE_ITEMS = [
-  { icon: '🎙️', title: 'التلاوات', text: 'تلاوات خاشعة من الحرمين الشريفين', path: '/recitations' },
-  { icon: '📖', title: 'مصحف', text: 'تصفح القرآن الكريم', path: '/quran' },
-  { icon: '📜', title: 'الأحاديث النبوية', text: 'أحاديث موثقة من السنة', path: '/hadith' },
-  { icon: '🕌', title: 'قصص الأنبياء', text: 'العبرة والعظة من سيرهم', path: '/prophets' },
-  { icon: '🤲', title: 'الأذكار والأدعية', text: 'أذكار الصباح والمساء', path: '/adhkar' },
-  { icon: '✅', title: 'سنن النبي', text: 'تابع سننك اليومية', path: '/sunnah' },
-]
+function NavItem({ item, route, go, expanded, onToggle }) {
+  if (item.type === 'link') {
+    return <button className={route === item.path ? 'active' : ''} onClick={() => go(item.path)}>{item.label}</button>
+  }
+  const isOpen = !!expanded[item.key]
+  const isActive = flattenPaths(item).includes(route)
+  return <>
+    <button className={`nav-expandable ${isOpen ? 'open' : ''} ${isActive ? 'active' : ''}`} onClick={() => onToggle(item.key)} aria-expanded={isOpen}>{item.label}<span className="nav-chevron">‹</span></button>
+    {isOpen && <div className="nav-submenu">{item.children.map((child) => <NavItem key={child.key || child.path} item={child} route={route} go={go} expanded={expanded} onToggle={onToggle} />)}</div>}
+  </>
+}
 
 function Home({ go }) {
   return <section className="home-page">
-    <div className="hero-card"><span className="eyebrow">من الحرمين الشريفين</span><h1>صوتٌ يفتح <em>أبواب السكينة</em></h1><p>محتوى إسلامي، تلاوات خاشعة وأحاديث</p><div className="hero-actions"><button className="primary-btn" onClick={() => go('/recitations')}>استمع إلى التلاوات</button><button className="secondary-btn" onClick={() => go('/quran')}>افتح المصحف</button></div></div>
-    <section className="explore-section">
-      <div className="section-heading"><span className="eyebrow">استكشف</span><h2>كل ما تحتاجه في <em>مكان واحد</em></h2></div>
-      <div className="explore-grid">{EXPLORE_ITEMS.map((item) => <button key={item.path} className="explore-card" onClick={() => go(item.path)}><strong>{item.title}</strong><small>{item.text}</small></button>)}</div>
-    </section>
-    <LatestRecitations />
+    <div className="hero-card">
+      <span className="eyebrow">رفيقك اليومي إلى الحرمين</span>
+      <h1>كل ما تحتاجه من <em>نور الحرمين</em>، بصوت واحد</h1>
+      <p>تلاوات خاشعة، خطة ختمة تناسبك، وسنن نبوية تتابعها يوميًا — في مكان واحد موثوق.</p>
+      <div className="hero-actions">
+        <button className="primary-btn" onClick={() => go('/recitations')}>استمع الآن</button>
+        <button className="secondary-btn" onClick={() => go('/khatmah')}>ابدأ ختمتك</button>
+      </div>
+    </div>
     <section className="stats-section">
       <div className="stats-grid">
         <div className="stat-item"><strong>{sheikhsData.length}</strong><span>مشايخ تلاوة</span></div>
         <div className="stat-item"><strong>٢</strong><span>الحرمين الشريفين</span></div>
-        <div className="stat-item"><strong>٦</strong><span>أقسام إسلامية</span></div>
-        <div className="stat-item"><strong>يوميًا</strong><span>تحديث مستمر</span></div>
+        <div className="stat-item"><strong>٣٠</strong><span>جزءًا في كل ختمة</span></div>
+        <div className="stat-item"><strong>يوميًا</strong><span>محتوى متجدد</span></div>
       </div>
-    </section>
-    <section className="about-summary">
-      <div className="section-heading"><span className="eyebrow">تعرف علينا</span><h2>من <em>نحن</em></h2><p>تلاوات الحرمين — منصة إسلامية لنشر تلاوات من الحرم المكي والمدني، مع محتوى إسلامي موثوق: أحاديث نبوية، قصص الأنبياء، أذكار وأدعية، وسنن النبي ﷺ.</p></div>
-      <div className="hero-actions"><button className="secondary-btn" onClick={() => go('/about')}>اقرأ المزيد</button></div>
     </section>
     <section className="final-cta">
       <h2>ابدأ رحلتك الإيمانية <em>اليوم</em></h2>
@@ -170,39 +252,50 @@ function LatestRecitations() {
     { key: 'makkah', label: 'الحرم المكي', data: makkah, playlistUrl: `https://www.youtube.com/playlist?list=${PLAYLISTS.makkah}` },
     { key: 'madinah', label: 'الحرم المدني', data: madinah, playlistUrl: `https://www.youtube.com/playlist?list=${PLAYLISTS.madinah}` },
   ]
-  return <section className="latest-recitations">
-    <div className="section-heading"><span className="eyebrow">من قناتنا على يوتيوب</span><h2>آخر <em>تلاوة</em></h2></div>
-    <div className="yt-grid">
-      {cards.map((c) => {
-        const loading = c.data === null
-        const failed = c.data === false
-        const videoUrl = c.data ? `https://www.youtube.com/watch?v=${c.data.videoId}` : c.playlistUrl
-        return <div key={c.key} className="yt-card">
-          <a className="yt-thumb-link" href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label={c.label}>
-            <div className="yt-thumb">
-              {c.data && c.data.thumbnail ? <img src={c.data.thumbnail} alt={c.data.title} loading="lazy" /> : <div className="yt-thumb-placeholder" />}
-              <span className="yt-play">▶</span>
-              {!loading && !failed && <span className="yt-badge">جديد</span>}
-            </div>
-          </a>
-          <div className="yt-info">
-            <h3>{c.label}</h3>
-            <p>{loading ? 'جاري التحميل...' : failed ? 'تصفح القناة' : c.data.title}</p>
-            <a className="yt-all-link" href={c.playlistUrl} target="_blank" rel="noopener noreferrer">كل التلاوات ←</a>
+  return <div className="yt-grid">
+    {cards.map((c) => {
+      const loading = c.data === null
+      const failed = c.data === false
+      const videoUrl = c.data ? `https://www.youtube.com/watch?v=${c.data.videoId}` : c.playlistUrl
+      return <div key={c.key} className="yt-card">
+        <a className="yt-thumb-link" href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label={c.label} title={c.label}>
+          <div className="yt-thumb">
+            {c.data && c.data.thumbnail ? <img src={c.data.thumbnail} alt={c.data.title} loading="lazy" /> : <div className="yt-thumb-placeholder" />}
+            <span className="yt-play">▶</span>
+            {!loading && !failed && <span className="yt-badge">جديد</span>}
           </div>
+        </a>
+        <div className="yt-info">
+          <h3>{c.label}</h3>
+          <p>{loading ? 'جاري التحميل...' : failed ? 'تصفح القناة' : c.data.title}</p>
+          <a className="yt-all-link" href={c.playlistUrl} target="_blank" rel="noopener noreferrer">كل التلاوات ←</a>
         </div>
-      })}
+      </div>
+    })}
+  </div>
+}
+
+function FourudPage() {
+  const tiktok = SOCIAL_LINKS.find((s) => s.key === 'tiktok')
+  return <section className="fourud-page">
+    <div className="section-heading"><span className="eyebrow">من قناتنا على يوتيوب</span><h1>آخر <em>تلاوة</em> للفروض</h1></div>
+    <LatestRecitations />
+    <div className="fourud-promo">
+      <p>الفروض في حسابنا على التيك توك</p>
+      <a className="platform-icon platform-icon-lg" href={tiktok.url} target="_blank" rel="noopener noreferrer" title="تيك توك"><PlatformGlyph type="tiktok" /></a>
     </div>
   </section>
 }
 
 function Recitations({ current, selected, setSelected, open, setOpen, menuRef, audioRef, onTime }) { return <section className="recitations-page"><div className="section-heading"><span className="eyebrow">المكتبة الصوتية</span><h1>تلاوات <em>خاشعة</em></h1><p>اختر اسم الشيخ، ثم استمع إلى التلاوة من المسجد الحرام.</p></div><div className="select-wrap" ref={menuRef}><button className="sheikh-select" onClick={() => setOpen(!open)} aria-expanded={open}><span>{selected}</span><span>{open ? '▲' : '▼'}</span></button>{open && <div className="sheikh-options">{sheikhsData.map((s) => <button key={s.name} className={selected === s.name ? 'selected' : ''} onClick={() => { setSelected(s.name); setOpen(false) }}>{s.name}</button>)}</div>}</div><article className="recitation-card"><div className="recitation-meta"><div><h2>{current.title}</h2><p>{current.surah}</p></div><span className="location-badge">{current.location}</span></div><audio ref={audioRef} key={current.audioSrc} controls onTimeUpdate={onTime} onPause={onTime} onEnded={() => localStorage.setItem(STORAGE.audio, '0')}><source src={current.audioSrc} type="audio/mpeg" />متصفحك لا يدعم مشغل الصوت.</audio></article></section> }
 
-function About({ go }) { return <section className="placeholder-page about-page"><h1>من نحن</h1><p>تلاوات الحرمين — منصة إسلامية لنشر تلاوات من الحرم المكي والمدني، مع محتوى إسلامي موثوق: أحاديث نبوية، قصص الأنبياء، أذكار وأدعية، وسنن النبي ﷺ.</p><button className="secondary-btn" onClick={() => go('/sources')}>المصادر والتخريج</button></section> }
+function About({ go }) { return <section className="placeholder-page about-page"><h1>من نحن</h1><p>تلاوات الحرمين — هي منصة إسلامية لنشر تلاوات من الحرم المكي والمدني، مع محتوى إسلامي موثوق: أحاديث نبوية، قصص الأنبياء، أذكار وأدعية، وسنن النبي ﷺ.</p><div className="about-actions"><button className="secondary-btn" onClick={() => go('/about/options')} title="تصفح أقسام المحتوى">الخيارات</button><button className="secondary-btn" onClick={() => go('/sources')}>المصادر والتخريج</button></div></section> }
+
+function AboutOptions({ go }) { return <section className="explore-section about-options-page"><div className="section-heading"><h1>الخيارات</h1></div><div className="explore-grid">{ABOUT_OPTIONS.map((item) => <button key={item.path} className="explore-card" onClick={() => go(item.path)}><strong>{item.title}</strong><small>{item.text}</small></button>)}</div></section> }
 
 function ComingSoon({ route }) { return <section className="placeholder-page"><h1>{routeLabels[route]}</h1><p>قريبًا</p></section> }
 
-function SocialGlyph({ type }) {
+function PlatformGlyph({ type }) {
   const common = { viewBox: '0 0 24 24', width: 18, height: 18 }
   switch (type) {
     case 'youtube': return <svg {...common} fill="currentColor"><path d="M23.5 6.2s-.2-1.6-.9-2.3c-.9-.9-1.9-.9-2.3-1C17.1 2.6 12 2.6 12 2.6h0s-5.1 0-8.3.3c-.4 0-1.4.1-2.3 1C.7 4.6.5 6.2.5 6.2S.2 8.1.2 10v1.9c0 1.9.3 3.8.3 3.8s.2 1.6.9 2.3c.9.9 2.1.9 2.6 1 1.9.2 8 .3 8 .3s5.1 0 8.3-.3c.4 0 1.4-.1 2.3-1 .7-.7.9-2.3.9-2.3s.3-1.9.3-3.8V10c0-1.9-.3-3.8-.3-3.8zM9.8 14.6V7.4l6.4 3.6-6.4 3.6z" /></svg>

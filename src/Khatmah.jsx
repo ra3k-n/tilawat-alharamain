@@ -34,6 +34,8 @@ function juzForDay(dayIndex1, totalDays, startJuz) {
   for (let idx = from; idx <= to; idx++) list.push(((startJuz - 1 + idx) % TOTAL_JUZ) + 1);
   return list;
 }
+// Prevent the mouse-wheel from silently changing a focused number input's value while the page scrolls
+function blurOnWheel(e) { e.target.blur(); }
 
 function loadPlan() {
   try {
@@ -53,12 +55,23 @@ function savePlan(plan) {
 export function KhatmahPage() {
   const [plan, setPlan] = useState(() => loadPlan());
   const [isEditing, setIsEditing] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   if (!plan || isEditing) {
     return <SetupForm
       initial={plan}
-      onCancel={plan ? () => setIsEditing(false) : null}
-      onSave={(newPlan) => { savePlan(newPlan); setPlan(newPlan); setIsEditing(false); }}
+      error={saveError}
+      onCancel={plan ? () => { setIsEditing(false); setSaveError('') } : null}
+      onSave={(newPlan) => {
+        try {
+          savePlan(newPlan);
+          setPlan(newPlan);
+          setIsEditing(false);
+          setSaveError('');
+        } catch {
+          setSaveError('تعذّر الحفظ — جرّب مرة أخرى. إذا تكررت المشكلة، أعد فتح الصفحة.');
+        }
+      }}
     />;
   }
 
@@ -77,7 +90,7 @@ export function KhatmahPage() {
   />;
 }
 
-function SetupForm({ initial, onCancel, onSave }) {
+function SetupForm({ initial, onCancel, onSave, error }) {
   const [name, setName] = useState(initial?.name || 'ختمتي');
   const [goal, setGoal] = useState(initial?.goal || 'reading');
   const [mode, setMode] = useState('days');
@@ -85,6 +98,13 @@ function SetupForm({ initial, onCancel, onSave }) {
   const [endDateInput, setEndDateInput] = useState('');
   const [startJuz, setStartJuz] = useState(initial?.startJuz || 1);
   const [reminder, setReminder] = useState(initial?.reminder || false);
+
+  const handleReminderChange = (checked) => {
+    setReminder(checked);
+    if (checked && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -94,13 +114,13 @@ function SetupForm({ initial, onCancel, onSave }) {
       const end = toDateOnly(new Date(endDateInput));
       totalDays = Math.max(1, Math.round((end - start) / 86400000) + 1);
     }
-    if (reminder && 'Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
+    // initial.startDate may already be a plain string (it was serialized on a previous save) —
+    // normalize through `new Date(...)` instead of assuming it's still a Date instance.
+    const startDate = initial ? new Date(initial.startDate).toISOString() : new Date().toISOString();
     onSave({
       name: name.trim() || 'ختمتي',
       goal,
-      startDate: initial ? initial.startDate.toISOString() : new Date().toISOString(),
+      startDate,
       totalDays: Math.max(1, Math.round(totalDays)),
       startJuz: Math.min(30, Math.max(1, Math.round(startJuz))),
       reminder,
@@ -111,6 +131,7 @@ function SetupForm({ initial, onCancel, onSave }) {
   return <section className="khatmah-page" dir="rtl">
     <h1>{initial ? 'تعديل الختمة' : 'بدء ختمة جديدة'}</h1>
     {initial && <p className="khatmah-warning">تعديل الخطة يصفّر تقدمك الحالي إذا غيّرت عدد الأيام.</p>}
+    {error && <p className="khatmah-error">{error}</p>}
     <form className="khatmah-form" onSubmit={handleSubmit}>
       <label>اسم الختمة
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="مثال: ختمة رمضان" />
@@ -128,17 +149,17 @@ function SetupForm({ initial, onCancel, onSave }) {
       </div>
       {mode === 'days'
         ? <label>عدد الأيام
-            <input type="number" min="1" max="365" value={days} onChange={(e) => setDays(Number(e.target.value) || 1)} />
+            <input type="number" min="1" max="365" value={days} onChange={(e) => setDays(Number(e.target.value) || 1)} onWheel={blurOnWheel} />
           </label>
         : <label>تاريخ الانتهاء
             <input type="date" value={endDateInput} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setEndDateInput(e.target.value)} required />
           </label>}
 
       <label>تبدأ من الجزء رقم
-        <input type="number" min="1" max="30" value={startJuz} onChange={(e) => setStartJuz(Number(e.target.value) || 1)} />
+        <input type="number" min="1" max="30" value={startJuz} onChange={(e) => setStartJuz(Number(e.target.value) || 1)} onWheel={blurOnWheel} />
       </label>
 
-      <label className="khatmah-checkbox"><input type="checkbox" checked={reminder} onChange={(e) => setReminder(e.target.checked)} /> تذكير يومي (إشعار متصفح عند فتح الموقع إذا لم تُنهِ وردك)</label>
+      <label className="khatmah-checkbox"><input type="checkbox" checked={reminder} onChange={(e) => handleReminderChange(e.target.checked)} /> تذكير يومي (إشعار متصفح عند فتح الموقع إذا لم تُنهِ وردك)</label>
 
       <div className="khatmah-actions">
         <button type="submit" className="primary-btn">{initial ? 'حفظ التعديل' : 'بدء الختمة'}</button>

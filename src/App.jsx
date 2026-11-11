@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { SunnahPage } from './Sunnah'
 import { KhatmahPage } from './Khatmah'
-import emblem from './assets/tilawat-haramain-emblem.png'
+const wordmark = '/tilawat-haramain-gold-wordmark.png'
+import { PrayerStack, HijriCard, OccasionsStack, ContinueListening, DailyWird, TodaySunnah } from './components/HomeSections.jsx'
 import './App.css'
+import './home.css'
 
 const STORAGE = { route: 'tilawat:last-route', theme: 'tilawat:theme', sheikh: 'tilawat:selected-sheikh', audio: 'tilawat:audio-position' }
 
@@ -157,7 +159,7 @@ export default function App() {
 
   return <div dir="rtl" className="site-shell">
     <header className="topbar"><div className="topbar-inner">
-      <a className="brand" href="/" onClick={goHome} aria-label="العودة إلى الرئيسية" title="العودة إلى الرئيسية"><img className="brand-logo" src={emblem} alt="تلاوات الحرمين" draggable="false" /></a>
+      <a className="brand" href="/" onClick={goHome} aria-label="العودة إلى الرئيسية" title="العودة إلى الرئيسية"><img className="brand-logo" src={wordmark} alt="تلاوات الحرمين" draggable="false" /></a>
       <div className="header-actions">
         <div className="search-wrap" ref={searchRef}>
           <svg className="search-icon-glyph" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.2" y2="16.2" /></svg>
@@ -172,7 +174,6 @@ export default function App() {
         </div>
         <button className="theme-toggle" onClick={toggleTheme} title={theme === 'dark' ? 'التبديل إلى المظهر الفاتح' : 'التبديل إلى المظهر الداكن'} aria-label="تبديل المظهر">
           <span className={`theme-switch-icon ${theme}`} aria-hidden="true"><span className="theme-switch-circle" /></span>
-          <span className="theme-switch-label">{theme === 'dark' ? 'داكن' : 'فاتح'}</span>
         </button>
         <button className="mobile-menu" onClick={() => setIsDropdownOpen((v) => !v)} aria-label="فتح القائمة" title="فتح القائمة" aria-expanded={isDropdownOpen}>☰</button>
       </div>
@@ -185,7 +186,7 @@ export default function App() {
       </div>
     </header>
     <main className="main-content">
-      {route === '/' && <Home go={go} />}
+      {route === '/' && <Home go={go} current={currentRecitation} audioPosition={audioPosition} />}
       {route === '/recitations' && <Recitations current={currentRecitation} selected={selectedSheikh} setSelected={setSelectedSheikh} open={isSheikhOpen} setOpen={setIsSheikhOpen} menuRef={sheikhMenuRef} audioRef={audioRef} onTime={saveAudio} />}
       {route === '/fourud' && <FourudPage />}
       {route === '/sunnah' && <SunnahPage />}
@@ -214,13 +215,19 @@ function NavItem({ item, route, go, expanded, onToggle }) {
   </>
 }
 
-function Home({ go }) {
+function Home({ go, current, audioPosition }) {
   return <section className="home-page">
     <div className="hero-card">
       <h1>كل تلاوة من الحرمين</h1>
       <p>تلاوات، ختمة، وسنن نبوية، أذكار — موثوق</p>
       <div className="hero-actions"><button className="primary-btn" onClick={() => go('/fourud')}>الفروض</button></div>
     </div>
+    <HijriCard />
+    <PrayerStack />
+    <OccasionsStack />
+    <ContinueListening go={go} current={current} audioPosition={audioPosition} />
+    <DailyWird go={go} />
+    <TodaySunnah go={go} />
     <section className="support-section">
       <p className="support-title">اقتراحات والدعم</p>
       <a className="platform-icon platform-icon-lg" href={TELEGRAM_GROUP} target="_blank" rel="noopener noreferrer" title="مجموعة التليجرام" aria-label="مجموعة التليجرام"><PlatformGlyph type="telegram" /></a>
@@ -279,7 +286,7 @@ function FourudPage() {
   </section>
 }
 
-function Recitations({ current, selected, setSelected, open, setOpen, menuRef, audioRef, onTime }) { return <section className="recitations-page"><div className="section-heading"><span className="eyebrow">المكتبة الصوتية</span><h1>تلاوات <em>خاشعة</em></h1><p>اختر الشيخ، ثم استمع لتلاوة</p></div><div className="select-wrap" ref={menuRef}><button className="sheikh-select" onClick={() => setOpen(!open)} aria-expanded={open}><span>{selected}</span><span>{open ? '▲' : '▼'}</span></button>{open && <div className="sheikh-options">{sheikhsData.map((s) => <button key={s.name} className={selected === s.name ? 'selected' : ''} onClick={() => { setSelected(s.name); setOpen(false) }}>{s.name}</button>)}</div>}</div><article className="recitation-card"><div className="recitation-meta"><div><h2>{current.title}</h2><p>{current.surah}</p></div><span className="location-badge">{current.location}</span></div><audio ref={audioRef} key={current.audioSrc} controls onTimeUpdate={onTime} onPause={onTime} onEnded={() => localStorage.setItem(STORAGE.audio, '0')}><source src={current.audioSrc} type="audio/mpeg" />متصفحك لا يدعم مشغل الصوت.</audio></article></section> }
+function Recitations({ current, selected, setSelected, open, setOpen, menuRef, audioRef, onTime }) { return <section className="recitations-page"><div className="section-heading"><h1>تلاوات <em>خاشعة</em></h1><p>اختر الشيخ، ثم استمع لتلاوة</p></div><div className="select-wrap" ref={menuRef}><button className="sheikh-select" onClick={() => setOpen(!open)} aria-expanded={open}><span>{selected}</span><span>{open ? '▲' : '▼'}</span></button>{open && <div className="sheikh-options">{sheikhsData.map((s) => <button key={s.name} className={selected === s.name ? 'selected' : ''} onClick={() => { setSelected(s.name); setOpen(false) }}>{s.name}</button>)}</div>}</div><article className="recitation-card"><div className="recitation-meta"><div><h2>{current.title}</h2><p>{current.surah}</p></div><span className="location-badge">{current.location}</span></div><audio ref={audioRef} key={current.audioSrc} controls onTimeUpdate={onTime} onPause={onTime} onEnded={() => localStorage.setItem(STORAGE.audio, '0')}><source src={current.audioSrc} type="audio/mpeg" />متصفحك لا يدعم مشغل الصوت.</audio></article></section> }
 
 function About({ go }) { return <section className="placeholder-page about-page"><h1>من نحن</h1><p>تلاوات الحرمين — هي منصة إسلامية لنشر تلاوات من الحرم المكي والمدني، مع محتوى إسلامي موثوق: أحاديث نبوية، قصص الأنبياء، أذكار وأدعية، وسنن النبي ﷺ.</p><div className="about-actions"><button className="secondary-btn" onClick={() => go('/about/options')} title="تصفح أقسام المحتوى">الخيارات</button><button className="secondary-btn" onClick={() => go('/sources')}>المصادر والتخريج</button></div></section> }
 

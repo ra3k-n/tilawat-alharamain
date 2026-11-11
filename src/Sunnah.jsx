@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-function getTodayKey() {
+export function getTodayKey() {
   const d = new Date();
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -8,19 +8,19 @@ function getTodayKey() {
   return `completed_sunnahs:${y}-${m}-${day}`;
 }
 
+export const SUNNAH_LIST = [
+  { id: 1, title: 'التبكير إلى صلاة الجمعة', category: 'سنن صلاة' },
+  { id: 2, title: 'صلاة الضحى', category: 'سنن صلاة' },
+  { id: 3, title: 'قراءة سورة الكهف يوم الجمعة', category: 'سنن قرأنية' },
+  { id: 4, title: 'الوتر قبل النوم', category: 'سنن قيام' },
+  { id: 5, title: 'أذكار الصباح والمساء', category: 'سنن اليوم والليلة' },
+];
+
 export function SunnahPage() {
   const [completedSunnahs, setCompletedSunnahs] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [storageKey] = useState(getTodayKey);
 
-  // قائمة السنن النبوية
-  const sunnahList = [
-    { id: 1, title: 'التبكير إلى صلاة الجمعة', category: 'سنن صلاة' },
-    { id: 2, title: 'صلاة الضحى', category: 'سنن صلاة' },
-    { id: 3, title: 'قراءة سورة الكهف يوم الجمعة', category: 'سنن قرأنية' },
-    { id: 4, title: 'الوتر قبل النوم', category: 'سنن قيام' },
-    { id: 5, title: 'أذكار الصباح والمساء', category: 'سنن اليوم والليلة' },
-  ];
 
   // 1. قراءة البيانات المحفوظة فور فتح الصفحة (خاصة باليوم الحالي فقط)
   useEffect(() => {
@@ -57,7 +57,7 @@ export function SunnahPage() {
       <p className="sunnah-intro">حدد السنن التي أكملتها اليوم:</p>
 
       <div className="sunnah-list">
-        {sunnahList.map((sunnah) => {
+        {SUNNAH_LIST.map((sunnah) => {
           const isDone = completedSunnahs.includes(sunnah.id);
           return (
             <div

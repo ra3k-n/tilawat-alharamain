@@ -1,0 +1,93 @@
+/* ===== الشعار (الخط الذهبي فقط) وأيقونة المظهر بدون نص ===== */
+.brand-logo { height:40px; max-width:150px; }
+.theme-toggle { min-width:0; padding:9px 11px; flex-direction:row; }
+.theme-switch-icon { width:20px; height:20px; }
+@media (max-width:700px) { .brand-logo { height:34px; max-width:128px; } .theme-toggle { min-width:0; padding:9px 10px; } }
+
+/* ===== أقسام الرئيسية ===== */
+.home-block { max-width:640px; margin:0 auto 26px; }
+.block-title { margin:0 0 12px; font-size:17px; }
+.block-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+.mini-main { margin:0 0 4px; font-size:19px; font-weight:bold; }
+.mini-sub { margin:0; color:var(--muted); font-size:13px; line-height:1.7; }
+.glass-btn { border:1px solid var(--glass-border); color:var(--text); background:var(--glass-bg); box-shadow:inset 0 1px rgba(255,255,255,.12), 0 8px 24px rgba(0,0,0,.12); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); border-radius:13px; padding:10px 16px; font-size:14px; transition:border-color .2s ease, transform .15s ease; }
+.glass-btn:hover:not(:disabled) { border-color:var(--accent); }
+.glass-btn:active:not(:disabled) { transform:scale(.97); }
+.glass-btn:disabled { opacity:.55; cursor:default; }
+.glass-btn.is-done { border-color:var(--accent); background:color-mix(in srgb, var(--accent) 16%, var(--glass-bg)); }
+.glass-btn.icon-btn { padding:9px 10px; display:flex; align-items:center; justify-content:center; }
+.link-btn { border:0; background:none; color:var(--accent); font-size:13px; font-weight:bold; padding:8px 0 0; }
+.mini-card { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:18px 20px; border:1px solid var(--border); border-radius:16px; background:var(--surface); box-shadow:var(--shadow); }
+.mini-card .block-title { margin-bottom:8px; font-size:14px; color:var(--muted); font-weight:normal; }
+.mini-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+@media (max-width:560px) { .mini-card { flex-direction:column; align-items:stretch; } .mini-actions { justify-content:stretch; } .mini-actions .glass-btn, .mini-card > .glass-btn { width:100%; } }
+
+/* ===== التاريخ الهجري ===== */
+.hijri-card { padding:18px 20px; border:1px solid var(--border); border-radius:16px; background:var(--surface); box-shadow:var(--shadow); }
+.hijri-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.hijri-main { margin:0 0 4px; font-size:21px; font-weight:bold; color:var(--accent-2); }
+.hijri-sub { margin:0; font-size:13px; color:var(--muted); }
+.hijri-settings { margin-top:16px; padding-top:14px; border-top:1px solid var(--border); display:grid; gap:16px; }
+.setting-row { display:grid; gap:8px; font-size:14px; }
+.setting-row select, .setting-row input[type=date] { font:inherit; font-size:14px; padding:10px 12px; border-radius:12px; border:1px solid var(--glass-border); background:var(--glass-bg); color:var(--text); width:100%; }
+.seg { display:flex; gap:6px; }
+.seg button { flex:1; border:1px solid var(--glass-border); background:var(--glass-bg); color:var(--text); border-radius:11px; padding:9px 0; font-size:14px; }
+.seg button.on { border-color:var(--accent); background:color-mix(in srgb, var(--accent) 20%, var(--glass-bg)); font-weight:bold; }
+.conv-result { margin:0; font-weight:bold; color:var(--accent-2); }
+
+/* ===== البطاقات المكدسة ===== */
+.stack-deck { display:grid; padding-bottom:30px; }
+.stack-card { grid-area:1 / 1; transition:transform .35s ease, opacity .35s ease; transform-origin:center bottom; }
+.stack-card.depth-0 { z-index:4; }
+.stack-card.depth-1 { z-index:3; transform:translateY(14px) scale(.965); opacity:.7; pointer-events:none; }
+.stack-card.depth-2 { z-index:2; transform:translateY(27px) scale(.93); opacity:.45; pointer-events:none; }
+.stack-card.depth-3 { z-index:1; transform:translateY(27px) scale(.93); opacity:0; pointer-events:none; }
+.stack-controls { display:flex; justify-content:center; align-items:center; gap:14px; margin-top:4px; }
+.stack-arrow { width:38px; height:38px; border-radius:50%; border:1px solid var(--glass-border); background:var(--glass-bg); color:var(--text); font-size:20px; line-height:1; backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
+.stack-arrow:hover { border-color:var(--accent); }
+.stack-dots { display:flex; gap:6px; }
+.stack-dots span { width:7px; height:7px; border-radius:50%; background:var(--border); transition:background .2s ease, transform .2s ease; }
+.stack-dots span.on { background:var(--accent); transform:scale(1.25); }
+
+/* ===== مواقيت الصلاة ===== */
+.prayer-card, .occasion-card { padding:20px; border:1px solid var(--border); border-radius:18px; background:var(--surface); box-shadow:var(--shadow); text-align:right; }
+.prayer-card h3, .occasion-card h3 { margin:0 0 12px; font-size:18px; }
+.prayer-next { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; color:var(--muted); font-size:14px; }
+.prayer-next strong { color:var(--text); font-size:18px; }
+.prayer-clock { margin-inline-start:auto; }
+.prayer-count { margin:8px 0 14px; text-align:center; font-size:38px; font-weight:bold; letter-spacing:2px; color:var(--accent-2); font-variant-numeric:tabular-nums; }
+.prayer-list { list-style:none; margin:0; padding:0; display:grid; gap:2px; }
+.prayer-list li { display:grid; grid-template-columns:64px 76px 1fr; align-items:center; gap:8px; padding:9px 10px; border-radius:11px; font-size:14px; }
+.prayer-list li:not(:has(.p-imam)) { grid-template-columns:1fr auto; }
+.prayer-list li.is-next { background:color-mix(in srgb, var(--accent) 14%, transparent); box-shadow:inset -3px 0 var(--accent); }
+.p-name { font-weight:bold; }
+.p-time { color:var(--muted); font-variant-numeric:tabular-nums; }
+.p-imam { display:flex; flex-direction:column; text-align:left; line-height:1.5; transition:opacity .3s ease; }
+.p-imam b { font-size:13px; font-weight:bold; }
+.p-imam small { color:var(--muted); font-size:11px; }
+.p-imam.is-dim { opacity:.35; }
+.prayer-card.is-locked { filter:grayscale(1); opacity:.85; display:flex; flex-direction:column; align-items:center; gap:14px; padding:34px 20px; text-align:center; }
+.prayer-card.is-locked h3 { margin:0; color:var(--muted); }
+.locked-text { margin:0; color:var(--muted); font-size:14px; }
+@media (max-width:420px) { .prayer-list li { grid-template-columns:54px 66px 1fr; padding:8px 6px; font-size:13px; } .prayer-count { font-size:32px; } }
+
+/* ===== المناسبات ===== */
+.occasion-top { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.occasion-left { color:var(--accent-2); font-size:13px; font-weight:bold; white-space:nowrap; }
+.occasion-date { margin:0 0 14px; color:var(--muted); font-size:13px; }
+.occasion-card blockquote { margin:0 0 10px; padding:0 14px 0 0; border-right:3px solid var(--accent); line-height:1.9; font-size:15px; }
+.occasion-source { margin:0; color:var(--muted); font-size:12px; }
+
+/* ===== سنن اليوم ===== */
+.sunnah-mini { list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+.sunnah-mini button { width:100%; display:flex; align-items:center; gap:12px; text-align:right; padding:12px 14px; border-radius:13px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:14px; }
+.sunnah-mini button.on { border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.sunnah-mini .tick { width:22px; height:22px; border-radius:7px; border:1.5px solid var(--muted); display:flex; align-items:center; justify-content:center; font-size:13px; flex:none; }
+.sunnah-mini button.on .tick { border-color:var(--accent); background:var(--accent); color:#fff; }
+@media (prefers-reduced-motion:reduce) { .stack-card, .stack-dots span { transition:none; } }
+
+/* إصلاح: البطاقة الأمامية تملأ ارتفاع المكدس كله حتى لا يظهر ما خلفها */
+.stack-card > * { height:100%; }
+.hijri-main { font-size:19px; text-wrap:balance; line-height:1.6; }
+.stack-card:not(.depth-0) > * > * { visibility:hidden; }
+.main-nav:not(.nav-open) { box-shadow:none; }

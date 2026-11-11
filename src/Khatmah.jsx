@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 const STORAGE_KEY = 'tilawat:khatmah-plan';
 const TOTAL_JUZ = 30;
-const GOALS = [
+export const GOALS = [
   { id: 'reading', label: 'قراءة', verb: 'قرأت' },
   { id: 'memorization', label: 'حفظ', verb: 'حفظت' },
   { id: 'review', label: 'مراجعة', verb: 'راجعت' },
@@ -22,11 +22,11 @@ function addDays(date, days) {
 function formatDate(date) {
   return new Date(date).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
 }
-function dayIndexFromStart(startDate, today) {
+export function dayIndexFromStart(startDate, today) {
   const diff = Math.round((toDateOnly(today) - toDateOnly(startDate)) / 86400000);
   return diff + 1; // 1-based
 }
-function juzForDay(dayIndex1, totalDays, startJuz) {
+export function juzForDay(dayIndex1, totalDays, startJuz) {
   const from = Math.floor((dayIndex1 - 1) * TOTAL_JUZ / totalDays);
   const to = Math.floor(dayIndex1 * TOTAL_JUZ / totalDays) - 1;
   if (to < from) return [];
@@ -37,7 +37,7 @@ function juzForDay(dayIndex1, totalDays, startJuz) {
 // Prevent the mouse-wheel from silently changing a focused number input's value while the page scrolls
 function blurOnWheel(e) { e.target.blur(); }
 
-function loadPlan() {
+export function loadPlan() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
@@ -48,7 +48,7 @@ function loadPlan() {
     return null;
   }
 }
-function savePlan(plan) {
+export function savePlan(plan) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(plan));
 }
 
@@ -201,7 +201,7 @@ function ActivePlan({ plan, onEdit, onStop, onToggleDay }) {
     <p className="khatmah-progress-label">{progressPct}% مكتمل — {plan.completedDays.length} من {plan.totalDays} يوم</p>
 
     {isFinished ? (
-      <div className="khatmah-today-card khatmah-finished"><h2>🎉 أتممت خطتك</h2><p>بارك الله فيك، يمكنك بدء ختمة جديدة.</p></div>
+      <div className="khatmah-today-card khatmah-finished"><h2>أتممت خطتك</h2><p>بارك الله فيك، يمكنك بدء ختمة جديدة.</p></div>
     ) : (
       <div className="khatmah-today-card">
         <span className="khatmah-day-tag">اليوم {dayIndex} من {plan.totalDays}</span>
